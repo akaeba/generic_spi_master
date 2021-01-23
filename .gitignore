@@ -1,0 +1,46 @@
+#************************************************************************
+# License		: BSDv3
+#
+# Author		: Andreas Kaeberlein
+# Email			: andreas.kaeberlein@web.de	
+#
+# File			: .gitignore.
+#
+# Description	: preserve files for repo check-in
+#
+# Sources		: https://git-scm.com/docs/gitignore
+#
+# on			: 2020-01-23
+#************************************************************************
+
+
+
+# Exceptions
+#
+!.gitignore.
+!.gitconfig.
+**/!.gitkeep.
+#
+
+
+
+# Modelsim directory
+# Exclude all subdirectories, f.e. compiled hdl code
+#
+sim/**/*
+#
+
+
+
+# Quartus
+#
+fpga/db/
+fpga/incremental_db/
+fpga/simulation/
+fpga/timing/
+fpga/testbench/
+fpga/*_sim/
+fpga/incremental_db/
+fpga/db/
+fpga/output_files/
+#
