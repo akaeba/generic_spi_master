@@ -381,14 +381,14 @@ begin
 		--***************************
 		-- SCK clock divider
 		with current_state select									--! reload
-			sck_cntr_ld	<=	sck_cntr_is_zero	when CSN_START_WT,	--! wait for target shift clock generation
+			sck_cntr_ld	<=	sck_cntr_is_zero	when CSN_START_WT,	--! wait for target shift clock generation, and overflow
 							sck_cntr_is_zero 	when SCK_CHG_WT,	--! 
 							sck_cntr_is_zero 	when SCK_CAP_WT,	--!
 							sck_cntr_is_zero	when CSN_END_WT,	--!
 							sck_cntr_is_zero	when CSN_FRC_WT,	--!
 							'1' 				when others;		--! counter not needed, reload
 		
-		with current_state select						--! enable
+		with current_state select					--! enable
 			sck_cntr_en	<= 	'1'	when CSN_START_WT,	--! count to achieve target clock
 							'1' when SCK_CHG_WT,	--! 
 							'1' when SCK_CAP_WT,	--!
@@ -430,8 +430,6 @@ begin
 	----------------------------------------------
 	
 	
-	
-	
     ----------------------------------------------
     -- FSM state registers
 	p_fsm_reg : process( RST, CLK )
@@ -450,7 +448,8 @@ begin
     p_next_state : process	(
                                 current_state,		--! current FSM state
 								EN,					--! module inputs, enables transceiver
-								sck_cntr_cnt,	--! clock division
+								sck_cntr_cnt,		--! clock division
+								sck_cntr_is_zero,	--! sck counter expired
 								bit_cntr_cnt,		--! count shifted times
 								cs_cntr_cnt			--! selects active CS channel
                             )
@@ -467,7 +466,6 @@ begin
 				if ( '1' = EN ) then
 					if ( '0' = c_cpha ) then		--! SPI mode 0/2
 						next_state <= SCK_CHG;
-					
 					else
 						next_state <= CSN_START;
 					end if;
@@ -482,7 +480,7 @@ begin
 				if ( 1 < c_sck_div_2 ) then		--! clock division required
 					next_state <= CSN_START_WT;	--! wait for clock division
 				else							--! runs with half main clock
-					-- TODO
+					next_state <= SCK_CHG;		--! allows SCK = CLK/2 speed
 				end if;
 			--***************************
 
@@ -502,7 +500,7 @@ begin
 				if ( 1 < c_sck_div_2 ) then		--! clock division required
 					next_state <= SCK_CHG_WT;
 				else
-					-- TODO
+					next_state <= SCK_CAP;		--! allows SCK = CLK/2 speed
 				end if;
 			--***************************
 			
@@ -526,7 +524,11 @@ begin
 				if ( 1 < c_sck_div_2 ) then		--! clock division required
 					next_state <= SCK_CAP_WT;
 				else
-					-- TODO
+					if ( 0 = bit_cntr_cnt ) then	--! allows SCK = CLK/2 speed
+						next_state <= CSN_END;
+					else
+						next_state <= SCK_CHG;
+					end if;	
 				end if;
 			--***************************
 			
@@ -541,7 +543,6 @@ begin
 					else
 						next_state <= SCK_CHG;
 					end if;
-					
 				end if;
 			--***************************
 			
@@ -568,13 +569,17 @@ begin
 			--***************************
 			-- Limits CSN disable/enable to half SCK
 			when CSN_FRC =>
-				if ( 1 < c_sck_div_2 ) then		--! clock division required
+				if ( 1 < c_sck_div_2 ) then				--! clock division required
 					next_state <= CSN_FRC_WT;
-				else
-					if ( 0 = cs_cntr_cnt ) then 	--! NUM_CS-1 go in idle, through overflow in CSN_END state, check for zero
-						next_state <= IDLE;			--! all channels served
+				else									--! SCK = CLK/2 speed
+					if ( 0 = cs_cntr_cnt ) then 		--! NUM_CS-1 go in idle, through overflow in CSN_END state, check for zero
+						next_state <= IDLE;				--! all channels served
 					else
-						next_state <= CSN_START;	--! next CS selected channel
+						if ( '0' = c_cpha ) then		--! SPI mode 0/2
+							next_state <= SCK_CHG;
+						else
+							next_state <= CSN_START;	--! next CS selected channel
+						end if;
 					end if;
 				end if;
 			--***************************
@@ -590,7 +595,6 @@ begin
 					else
 						next_state <= CSN_START;	--! next CS selected channel
 					end if;
-					
 				end if;
 			--***************************
 		
@@ -603,8 +607,6 @@ begin
 		end case;
 	end process p_next_state;
 	----------------------------------------------
-	
-	
 	
 end architecture rtl;
 --------------------------------------------------------------------------
