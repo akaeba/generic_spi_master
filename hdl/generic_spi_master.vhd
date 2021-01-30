@@ -448,7 +448,6 @@ begin
     p_next_state : process	(
                                 current_state,		--! current FSM state
 								EN,					--! module inputs, enables transceiver
-								sck_cntr_cnt,		--! clock division
 								sck_cntr_is_zero,	--! sck counter expired
 								bit_cntr_cnt,		--! count shifted times
 								cs_cntr_cnt			--! selects active CS channel
@@ -487,10 +486,10 @@ begin
 			--***************************
 			-- Clock division
 			when CSN_START_WT =>
-				if ( 0 < sck_cntr_cnt ) then
-					next_state <= CSN_START_WT;
-				else
+				if ( '1' = sck_cntr_is_zero ) then
 					next_state <= SCK_CHG;
+				else
+					next_state <= CSN_START_WT;
 				end if;
 			--***************************
 
@@ -507,7 +506,7 @@ begin
 			--***************************
 			-- MOSI changes (SCK I/II) - clock division
 			when SCK_CHG_WT =>
-				if ( 0 = sck_cntr_cnt ) then
+				if ( '1' = sck_cntr_is_zero ) then
 					--if ( ('0' = c_cpha) and (1 = bit_cntr_cnt) ) then	--! SPI Mode 0/2: skip last half SCK cycle
 					--	next_state <= CSN_END;							--! waits half clock SCK cycle before CS disabling
 					--else
@@ -535,14 +534,14 @@ begin
 			--***************************
 			-- MISO captured (SCK II/II) - clock division
 			when SCK_CAP_WT =>
-				if ( 0 < sck_cntr_cnt ) then
-					next_state <= SCK_CAP_WT;
-				else
+				if ( '1' = sck_cntr_is_zero ) then
 					if ( 0 = bit_cntr_cnt ) then
 						next_state <= CSN_END;	--! waits half clock SCK cycle before CS disabling
 					else
 						next_state <= SCK_CHG;
 					end if;
+				else
+					next_state <= SCK_CAP_WT;
 				end if;
 			--***************************
 			
@@ -559,10 +558,10 @@ begin
 			--***************************
 			-- CSN SCK division wait
 			when CSN_END_WT =>
-				if ( 0 < sck_cntr_cnt ) then
-					next_state <= CSN_END_WT;
-				else
+				if ( '1' = sck_cntr_is_zero ) then
 					next_state <= CSN_FRC;
+				else
+					next_state <= CSN_END_WT;
 				end if;
 			--***************************
 			
@@ -587,14 +586,14 @@ begin
 			--***************************
 			-- CSN SCK division wait
 			when CSN_FRC_WT =>
-				if ( 0 < sck_cntr_cnt ) then
-					next_state <= CSN_FRC_WT;
-				else
+				if ( '1' = sck_cntr_is_zero ) then
 					if ( 0 = cs_cntr_cnt ) then 	--! NUM_CS-1 go in idle, through overflow in CSN_END state, check for zero
 						next_state <= IDLE;			--! all channels served
 					else
 						next_state <= CSN_START;	--! next CS selected channel
 					end if;
+				else
+					next_state <= CSN_FRC_WT;
 				end if;
 			--***************************
 		
