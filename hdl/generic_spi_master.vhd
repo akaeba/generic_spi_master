@@ -79,7 +79,7 @@ generic (
 			NUM_CS			: positive				:= 1;			--! Number of Channels (chip-selects)
 			DW_SFR			: integer  				:= 8;           --! data width shift register
             CLK_HZ      	: positive              := 50_000_000;  --! clock frequency
-            SCK_HZ			: positive				:= 1_000_000;	--! Shift clock rate
+            SCK_HZ			: positive				:= 1_000_000;	--! Shift clock rate; minimal frequency - can be higher due numeric rounding effects
 			RST_ACTIVE		: bit					:= '1';			--! Reset active level
 			MISO_SYNC_STG	: natural				:= 2;			--! number of MISO sync stages, 0: not implemented
 			MISO_HYS_STG	: natural 				:= 0			--! number of bit length for hysteresis, 0: not implemented
@@ -134,10 +134,10 @@ architecture rtl of generic_spi_master is
 				IDLE,			--! Wait for transfer start
 				CSN_START,		--! CSN at transmission start
 				CSN_START_WT,	--! wait for half clock
-				SCK0,			--! Clock phase 0 SFR update, depends on SPI mode
-				SCK0_WT,		--! Clock divider wait state
-				SCK1,			--! Clock phase 1 SFR update, depends on SPI mode
-				SCK1_WT,		--! clock divider wait state
+				SCK_CHG,		--! SFR output (MOSI) is changed
+				SCK_CHG_WT,		--! Clock divider wait state
+				SCK_CAP,		--! SFR captures input (MISO)
+				SCK_CAP_WT,		--! clock divider wait state
 				CSN_END,		--! CSN at transmission start
 				CSN_END_WT,		--! wait for half clock
 				CSN_FRC,		--! ensures wait of half SCK period
@@ -153,9 +153,10 @@ architecture rtl of generic_spi_master is
 		signal current_state	: t_spi_master;		--! FSM state
 		signal next_state		: t_spi_master;		--! next state
 		-- Counter
-		signal sck_clk_gen_cnt	: unsigned(c_sck_div_width-1 downto 0);		--! SCK clock generator counter value
-		signal sck_clk_gen_ld	: std_logic;								--! load SCK clock generator
-		signal sck_clk_gen_en	: std_logic;								--! counter decrements
+		signal sck_cntr_cnt		: unsigned(c_sck_div_width-1 downto 0);		--! SCK clock generator counter value
+		signal sck_cntr_ld		: std_logic;								--! load SCK clock generator
+		signal sck_cntr_en		: std_logic;								--! counter decrements
+		signal sck_cntr_is_zero	: std_logic;								--! actual count value is zero
 		signal bit_cntr_cnt		: unsigned(c_bit_cntr_width-1 downto 0);	--! bit counter, needed for FSMs end of shift
 		signal bit_cntr_ld		: std_logic;								--! preload bit counter
 		signal bit_cntr_is_zero	: std_logic;								--! has zero count
@@ -215,15 +216,16 @@ begin
 		
 		--***************************
 		-- toggle control
-		with next_state select					--! preload
+		with current_state select				--! preload
 			sck_tff_ld	<= 	'1' when IDLE,		--! init
 							'1' when CSN_END,	--! SPI Mode 0/2 last toggle skipped, bring to idle
 							'0' when others;	--! counter not needed, reload
 		
-		with next_state select					--! enable
-			sck_tff_en	<= 	'1'	when SCK0,		--! toggle
-							'1'	when SCK1,		--! toggle
-							'0' when others;	--! hold
+		with current_state select												--! enable
+			sck_tff_en	<= 	(c_cpha or (not bit_cntr_is_init))	when SCK_CHG,	--! SPI Mode 0/2 TFF toggels not on falling edge of CSN
+							'1'									when SCK_CAP,	--! toggle
+							'0' 								when others;	--! hold
+							
 		--***************************
 		
 		--***************************
@@ -256,11 +258,12 @@ begin
 		
 		--***************************
 		-- Control
-		with next_state select					--! select channel
-			csn_ff_en	<=	'1'	when CSN_START,	--! SPI Mode 0/2, SFR loaded at CSN fall edge
-							'0'	when others;	--! hold last value	
+		with current_state select												--! select channel
+			csn_ff_en	<=	'1'									when CSN_START,	--! SPI Mode 1/3, 
+							(not c_cpha) and bit_cntr_is_init	when SCK_CHG,	--! SPI Mode 0/2, CSN is enabled at SCK change
+							'0'									when others;	--! hold last value	
 							
-		with next_state select					--! deselect all
+		with current_state select				--! deselect all
 			csn_ff_ld	<=	'1'	when IDLE,		--! all slaves disabled
 							'1'	when CSN_FRC,	--! deselect all slaves
 							'0'	when others;	--! hold last value	
@@ -296,19 +299,14 @@ begin
 		
 		--***************************
 		-- SFR Control
-		with next_state select											--! MOSI load
-			mosi_load	<=	not c_cpha					when CSN_START,	--! SPI Mode 0/2, SFR loaded at CSN fall edge
-							bit_cntr_is_init and c_cpha	when SCK0,		--! SPI mode 1/3, SFR is loaded on first SCK edge
-							'0' 						when others;	--! 
+		with current_state select								--! MOSI load, dominant
+			mosi_load	<=	bit_cntr_is_init	when SCK_CHG,	--! new value
+							'0' 				when others;	--! 
 
-		with next_state select													--! MOSI shift
-			mosi_shift	<=	not c_cpha							when SCK1,		--! data output updated on second clock edge
-							(not bit_cntr_is_init) and c_cpha	when SCK0,		--! shift in SPI mode 1/3
-							'0' 								when others;	--! no shift
-			
-		-- Flags
-		bit_cntr_is_zero	<= '1' when ( to_01(bit_cntr_cnt) = 0 ) else '0';
-		bit_cntr_is_init	<= '1' when ( to_01(bit_cntr_cnt) = to_unsigned(DW_SFR, bit_cntr_cnt'length) ) else '0';
+		with current_state select				--! MOSI shift
+			mosi_shift	<=	'1'	when SCK_CHG,	--! shift
+							'1'	when CSN_END,	--! sets line to zero
+							'0' when others;	--! no shift
 		--***************************
 		
 		--***************************
@@ -350,15 +348,15 @@ begin
 		begin
 			if ( to_stdulogic(RST_ACTIVE) = RST ) then
 				-- Reset
-				sck_clk_gen_cnt <= (others => '0');
-				bit_cntr_cnt	<= (others => '0');
+				sck_cntr_cnt	<= (others => '0');
+				bit_cntr_cnt 	<= (others => '0');
 				cs_cntr_cnt		<= (others => '0');
 			elsif ( rising_edge(CLK) ) then
 				-- SCK Clock generator
-				if ( '1' = sck_clk_gen_ld ) then
-					sck_clk_gen_cnt	<= to_unsigned(c_sck_div_2-1, sck_clk_gen_cnt'length);	-- preload counter
-				elsif ( '1' = sck_clk_gen_en ) then
-					sck_clk_gen_cnt	<= sck_clk_gen_cnt-1;
+				if ( '1' = sck_cntr_ld ) then
+					sck_cntr_cnt <= to_unsigned(c_sck_div_2-2, sck_cntr_cnt'length);	-- preload counter
+				elsif ( '1' = sck_cntr_en ) then
+					sck_cntr_cnt <= sck_cntr_cnt-1;
 				end if;
 				-- Bit counter
 				if ( '1' = bit_cntr_ld ) then
@@ -381,42 +379,50 @@ begin
 		--***************************
 		
 		--***************************
-		-- SCK generator control
-		with next_state select							--! reload
-			sck_clk_gen_ld	<=	'0'	when CSN_START_WT,	--! wait for target shift clock generation
-								'0' when SCK0_WT,		--! 
-								'0' when SCK1_WT,		--!
-								'0'	when CSN_END_WT,	--!
-								'0' when CSN_FRC_WT,	--!
-								'1' when others;		--! counter not needed, reload
+		-- SCK clock divider
+		with current_state select									--! reload
+			sck_cntr_ld	<=	sck_cntr_is_zero	when CSN_START_WT,	--! wait for target shift clock generation
+							sck_cntr_is_zero 	when SCK_CHG_WT,	--! 
+							sck_cntr_is_zero 	when SCK_CAP_WT,	--!
+							sck_cntr_is_zero	when CSN_END_WT,	--!
+							sck_cntr_is_zero	when CSN_FRC_WT,	--!
+							'1' 				when others;		--! counter not needed, reload
 		
-		with next_state select							--! enable
-			sck_clk_gen_en	<= 	'1'	when CSN_START_WT,	--! count to achieve target clock
-								'1' when SCK0_WT,		--! 
-								'1' when SCK1_WT,		--!
-								'1'	when CSN_END_WT,	--!
-								'1' when CSN_FRC_WT,	--!
-								'0' when others;		--! no count
+		with current_state select						--! enable
+			sck_cntr_en	<= 	'1'	when CSN_START_WT,	--! count to achieve target clock
+							'1' when SCK_CHG_WT,	--! 
+							'1' when SCK_CAP_WT,	--!
+							'1'	when CSN_END_WT,	--!
+							'1' when CSN_FRC_WT,	--!
+							'0' when others;		--! no count
+		
+		-- Flags
+		sck_cntr_is_zero <= '1' when ( 0 = to_01(sck_cntr_cnt) ) else '0';
 		--***************************
 		
 		--***************************
-		-- Bit counter control
-		with next_state select					--! reload
-			bit_cntr_ld	<= 	'1' when CSN_START,	--! preload counter
+		-- Bit counter
+		with current_state select				--! reload
+			bit_cntr_ld	<= 	'1' when IDLE,		--! preload
+							'1' when CSN_START,	--! preload counter
 							'0' when others;	--! counter not needed, reload
 		
-		with next_state select					--! enable
-			bit_cntr_en	<= 	'1'	when SCK1,		--! decrement counter
+		with current_state select				--! enable
+			bit_cntr_en	<= 	'1'	when SCK_CAP,	--! decrement counter
 							'0' when others;	--! hold
+							
+		-- Flags
+		bit_cntr_is_zero <= '1' when ( 0 = to_01(bit_cntr_cnt) ) else '0';
+		bit_cntr_is_init <= '1' when ( to_unsigned(DW_SFR, bit_cntr_cnt'length) = to_01(bit_cntr_cnt) ) else '0';	
 		--***************************
 		
 		--***************************
 		-- CSN counter counter
-		with next_state select						--! clears counter
+		with current_state select					--! clears counter
 			cs_cntr_zero	<= 	'1' when IDLE,		--! clear
 								'0' when others;	--! hold
 		
-		with next_state select					--! enable
+		with current_state select				--! enable
 			cs_cntr_en	<= 	'1'	when CSN_END,	--! next channel
 							'0' when others;	--! hold
 		--***************************
@@ -444,7 +450,7 @@ begin
     p_next_state : process	(
                                 current_state,		--! current FSM state
 								EN,					--! module inputs, enables transceiver
-								sck_clk_gen_cnt,	--! clock division
+								sck_cntr_cnt,	--! clock division
 								bit_cntr_cnt,		--! count shifted times
 								cs_cntr_cnt			--! selects active CS channel
                             )
@@ -459,7 +465,12 @@ begin
 			-- wait for start
 			when IDLE =>
 				if ( '1' = EN ) then
-					next_state <= CSN_START;
+					if ( '0' = c_cpha ) then		--! SPI mode 0/2
+						next_state <= SCK_CHG;
+					
+					else
+						next_state <= CSN_START;
+					end if;
 				else
 					next_state <= IDLE;
 				end if;
@@ -478,58 +489,59 @@ begin
 			--***************************
 			-- Clock division
 			when CSN_START_WT =>
-				if ( 0 = sck_clk_gen_cnt ) then
-					next_state <= SCK0;
-				else
+				if ( 0 < sck_cntr_cnt ) then
 					next_state <= CSN_START_WT;
+				else
+					next_state <= SCK_CHG;
 				end if;
 			--***************************
 
 			--***************************
-			-- Shift Clock Phase I/II
-			when SCK0 =>
+			-- MOSI changes (SCK I/II)
+			when SCK_CHG =>
 				if ( 1 < c_sck_div_2 ) then		--! clock division required
-					next_state <= SCK0_WT;
+					next_state <= SCK_CHG_WT;
 				else
 					-- TODO
 				end if;
 			--***************************
 			
 			--***************************
-			-- Shift Clock Phase I/II - Division
-			when SCK0_WT =>
-				if ( 0 = sck_clk_gen_cnt ) then
-					if ( ('0' = c_cpha) and (1 = bit_cntr_cnt) ) then	--! SPI Mode 0/2: skip last half SCK cycle
-						next_state <= CSN_END;							--! waits half clock SCK cycle before CS disabling
-					else
-						next_state <= SCK1;
-					end if;
+			-- MOSI changes (SCK I/II) - clock division
+			when SCK_CHG_WT =>
+				if ( 0 = sck_cntr_cnt ) then
+					--if ( ('0' = c_cpha) and (1 = bit_cntr_cnt) ) then	--! SPI Mode 0/2: skip last half SCK cycle
+					--	next_state <= CSN_END;							--! waits half clock SCK cycle before CS disabling
+					--else
+					next_state <= SCK_CAP;
+					--end if;
 				else
-					next_state <= SCK0_WT;
+					next_state <= SCK_CHG_WT;
 				end if;
 			--***************************
 			
 			--***************************
-			-- Shift Clock Phase II/II
-			when SCK1 =>
+			-- MISO captured (SCK II/II)
+			when SCK_CAP =>
 				if ( 1 < c_sck_div_2 ) then		--! clock division required
-					next_state <= SCK1_WT;
+					next_state <= SCK_CAP_WT;
 				else
 					-- TODO
 				end if;
 			--***************************
 			
 			--***************************
-			-- Shift Clock Phase II/II - Division
-			when SCK1_WT =>
-				if ( 0 = sck_clk_gen_cnt ) then
+			-- MISO captured (SCK II/II) - clock division
+			when SCK_CAP_WT =>
+				if ( 0 < sck_cntr_cnt ) then
+					next_state <= SCK_CAP_WT;
+				else
 					if ( 0 = bit_cntr_cnt ) then
 						next_state <= CSN_END;	--! waits half clock SCK cycle before CS disabling
 					else
-						next_state <= SCK0;
+						next_state <= SCK_CHG;
 					end if;
-				else
-					next_state <= SCK0_WT;
+					
 				end if;
 			--***************************
 			
@@ -546,10 +558,10 @@ begin
 			--***************************
 			-- CSN SCK division wait
 			when CSN_END_WT =>
-				if ( 0 = sck_clk_gen_cnt ) then
-					next_state <= CSN_FRC;
-				else
+				if ( 0 < sck_cntr_cnt ) then
 					next_state <= CSN_END_WT;
+				else
+					next_state <= CSN_FRC;
 				end if;
 			--***************************
 			
@@ -570,14 +582,15 @@ begin
 			--***************************
 			-- CSN SCK division wait
 			when CSN_FRC_WT =>
-				if ( 0 = sck_clk_gen_cnt ) then
+				if ( 0 < sck_cntr_cnt ) then
+					next_state <= CSN_FRC_WT;
+				else
 					if ( 0 = cs_cntr_cnt ) then 	--! NUM_CS-1 go in idle, through overflow in CSN_END state, check for zero
 						next_state <= IDLE;			--! all channels served
 					else
 						next_state <= CSN_START;	--! next CS selected channel
 					end if;
-				else
-					next_state <= CSN_FRC_WT;
+					
 				end if;
 			--***************************
 		
