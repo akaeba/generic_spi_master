@@ -328,14 +328,34 @@ begin
 	
     ----------------------------------------------
     -- MISO Shift Register
-	p_miso_sfr : process( RST, CLK )
-	begin
-		if ( to_stdulogic(RST_ACTIVE) = RST ) then
-
-		elsif ( rising_edge(CLK) ) then
-
-		end if;
-	end process p_MISO_sfr;
+	----------------------------------------------
+	
+		--***************************
+		-- SFR
+		p_miso_sfr : process( RST, CLK )
+		begin
+			if ( to_stdulogic(RST_ACTIVE) = RST ) then
+				miso_sfr <= (others => '0');
+			elsif ( rising_edge(CLK) ) then
+				if ( '1' = miso_shift ) then	--! TODO, major vote MISO
+					miso_sfr <= miso_sfr(miso_sfr'left-1 downto miso_sfr'right) & MISO;	--! shift one bit to left
+				end if;
+			end if;
+		end process p_MISO_sfr;
+		--***************************
+	
+		--***************************
+		-- SFR Control
+		with current_state select				--! MOSI shift
+			miso_shift	<=	'1'	when SCK_CAP,	--! shift
+							'0' when others;	--! no shift
+		--***************************
+		
+		--***************************
+		-- Output
+		DO <= miso_sfr;		--! Captured Serial data is released
+		--***************************
+	
 	----------------------------------------------
 	
 	
@@ -404,6 +424,7 @@ begin
 		-- Bit counter
 		with current_state select				--! reload
 			bit_cntr_ld	<= 	'1' when IDLE,		--! preload
+							'1' when CSN_FRC,	--! reload counter in SPI Mode 0/2, cause CSN_START is bypassed
 							'1' when CSN_START,	--! preload counter
 							'0' when others;	--! counter not needed, reload
 		
@@ -587,10 +608,14 @@ begin
 			-- CSN SCK division wait
 			when CSN_FRC_WT =>
 				if ( '1' = sck_cntr_is_zero ) then
-					if ( 0 = cs_cntr_cnt ) then 	--! NUM_CS-1 go in idle, through overflow in CSN_END state, check for zero
-						next_state <= IDLE;			--! all channels served
+					if ( 0 = cs_cntr_cnt ) then 		--! NUM_CS-1 go in idle, through overflow in CSN_END state, check for zero
+						next_state <= IDLE;				--! all channels served
 					else
-						next_state <= CSN_START;	--! next CS selected channel
+						if ( '0' = c_cpha ) then		--! SPI mode 0/2
+							next_state <= SCK_CHG;
+						else
+							next_state <= CSN_START;	--! next CS selected channel
+						end if;
 					end if;
 				else
 					next_state <= CSN_FRC_WT;
