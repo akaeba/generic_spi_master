@@ -11,8 +11,8 @@ add wave -noupdate /generic_spi_master_tb/MISO
 add wave -noupdate -divider Parallel
 add wave -noupdate /generic_spi_master_tb/DI_RD
 add wave -noupdate -radix hexadecimal -childformat {{/generic_spi_master_tb/DI(7) -radix hexadecimal} {/generic_spi_master_tb/DI(6) -radix hexadecimal} {/generic_spi_master_tb/DI(5) -radix hexadecimal} {/generic_spi_master_tb/DI(4) -radix hexadecimal} {/generic_spi_master_tb/DI(3) -radix hexadecimal} {/generic_spi_master_tb/DI(2) -radix hexadecimal} {/generic_spi_master_tb/DI(1) -radix hexadecimal} {/generic_spi_master_tb/DI(0) -radix hexadecimal}} -subitemconfig {/generic_spi_master_tb/DI(7) {-height 18 -radix hexadecimal} /generic_spi_master_tb/DI(6) {-height 18 -radix hexadecimal} /generic_spi_master_tb/DI(5) {-height 18 -radix hexadecimal} /generic_spi_master_tb/DI(4) {-height 18 -radix hexadecimal} /generic_spi_master_tb/DI(3) {-height 18 -radix hexadecimal} /generic_spi_master_tb/DI(2) {-height 18 -radix hexadecimal} /generic_spi_master_tb/DI(1) {-height 18 -radix hexadecimal} /generic_spi_master_tb/DI(0) {-height 18 -radix hexadecimal}} /generic_spi_master_tb/DI
-add wave -noupdate -radix hexadecimal /generic_spi_master_tb/DO
 add wave -noupdate /generic_spi_master_tb/DO_WR
+add wave -noupdate -radix hexadecimal /generic_spi_master_tb/DO
 add wave -noupdate -divider Control
 add wave -noupdate /generic_spi_master_tb/EN
 add wave -noupdate /generic_spi_master_tb/BSY
@@ -39,7 +39,7 @@ add wave -noupdate /generic_spi_master_tb/DUT/mosi_shift
 add wave -noupdate -radix hexadecimal /generic_spi_master_tb/DUT/miso_sfr
 add wave -noupdate /generic_spi_master_tb/DUT/miso_shift
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 3} {878101 ps} 0}
+WaveRestoreCursors {{Cursor 3} {1530000 ps} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 361
 configure wave -valuecolwidth 100
