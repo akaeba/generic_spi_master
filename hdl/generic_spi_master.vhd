@@ -173,6 +173,7 @@ architecture rtl of generic_spi_master is
 		signal mosi_load		: std_logic;							--! load parallel data
 		signal mosi_shift		: std_logic;							--! shift on next clock rise edge
 		signal miso_sfr			: std_logic_vector(DW_SFR-1 downto 0);	--! MISO shift register
+		signal miso_load		: std_logic;							--! SFR data available
 		signal miso_shift		: std_logic;							--! shift on next clock rise edge
 		-- Miscellaneous
 		signal csn_ff			: std_logic_vector(CSN'range);	--! CSN registered out
@@ -182,9 +183,6 @@ architecture rtl of generic_spi_master is
 		
 	----------------------------------------------
 	
-
-
-
 begin
 
     ----------------------------------------------
@@ -337,7 +335,9 @@ begin
 			if ( to_stdulogic(RST_ACTIVE) = RST ) then
 				miso_sfr <= (others => '0');
 			elsif ( rising_edge(CLK) ) then
-				if ( '1' = miso_shift ) then	--! TODO, major vote MISO
+				if ( '1' = miso_load ) then
+					miso_sfr <= (others => '0');
+				elsif ( '1' = miso_shift ) then	--! TODO, major vote MISO
 					miso_sfr <= miso_sfr(miso_sfr'left-1 downto miso_sfr'right) & MISO;	--! shift one bit to left
 				end if;
 			end if;
@@ -346,9 +346,22 @@ begin
 	
 		--***************************
 		-- SFR Control
+		with current_state select				--! External capturing
+			miso_load	<=	'1'	when CSN_END,	--! capture
+							'0' when others;	--! no new data
+		
 		with current_state select				--! MOSI shift
 			miso_shift	<=	'1'	when SCK_CAP,	--! shift
 							'0' when others;	--! no shift
+		--***************************
+		
+		--***************************
+		-- Output Capturing
+		p_do_sel : process( miso_load, cs_cntr_cnt )
+		begin
+			DO_WR									<= (others => '0');
+			DO_WR(to_integer(to_01(cs_cntr_cnt)))	<= miso_load;
+		end process p_do_sel;
 		--***************************
 		
 		--***************************
@@ -446,6 +459,20 @@ begin
 		with current_state select				--! enable
 			cs_cntr_en	<= 	'1'	when CSN_END,	--! next channel
 							'0' when others;	--! hold
+		--***************************
+	
+	----------------------------------------------
+	
+	
+    ----------------------------------------------
+    -- Miscellaneous
+	----------------------------------------------
+		
+		--***************************
+		-- SPI activity
+		with current_state select		--! SPI active
+			BSY	<= 	'0' when IDLE,		--! idle
+					'1' when others;	--! busy
 		--***************************
 	
 	----------------------------------------------
