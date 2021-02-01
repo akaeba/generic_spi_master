@@ -50,6 +50,13 @@ end entity HC594;
 architecture sim of HC594 is
 
     ----------------------------------------------
+    -- Constants
+    ----------------------------------------------
+        constant tDly : time := 1 ns;   --! regs propagation delay
+    ----------------------------------------------
+
+
+    ----------------------------------------------
     -- Signals
     ----------------------------------------------
         signal sfr  : std_logic_vector(Q'range);    --! shift register
@@ -65,11 +72,11 @@ begin
         if ( SHRN = '0' ) then
             sfr <= (others => '0');
         elsif ( rising_edge(SHCP) ) then
-            sfr <= sfr(sfr'left-1 downto sfr'right) & DS;
+            sfr <= sfr(sfr'left-1 downto sfr'right) & DS after tDly;
         end if;
     end process p_sfr;
         -- Misc
-    Q7S <= sfr(sfr'left);   --! serial output
+    Q7S <= sfr(sfr'left) after tDly;   --! serial output
     ----------------------------------------------
 
     ----------------------------------------------
@@ -79,11 +86,11 @@ begin
         if ( STRN = '0' ) then
             reg <= (others => '0');
         elsif ( rising_edge(STCP) ) then
-            reg <= sfr;
+            reg <= sfr after tDly;
         end if;
     end process p_storage;
         -- Misc
-    Q <= reg;   --! parallel output
+    Q <= reg after tDly;    --! parallel output
     ----------------------------------------------
 
 end architecture sim;
