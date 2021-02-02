@@ -27,7 +27,7 @@ library IEEE;
 
 
 --------------------------------------------------------------------------
--- Shift Register
+-- 8-bit shift register with output register
 entity HC594 is
 port    (
             -- Clock/Reset
