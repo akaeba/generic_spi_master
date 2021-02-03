@@ -66,7 +66,6 @@ library IEEE;
     use IEEE.math_real.log2;
 	use IEEE.math_real.ceil;
 	use IEEE.math_real.floor;
-    use IEEE.math_real.round;
 --------------------------------------------------------------------------
 
 
@@ -335,9 +334,7 @@ begin
 			if ( to_stdulogic(RST_ACTIVE) = RST ) then
 				miso_sfr <= (others => '0');
 			elsif ( rising_edge(CLK) ) then
-				if ( '1' = miso_load ) then
-					miso_sfr <= (others => '0');
-				elsif ( '1' = miso_shift ) then	--! TODO, major vote MISO
+				if ( '1' = miso_shift ) then	--! TODO, major vote MISO
 					miso_sfr <= miso_sfr(miso_sfr'left-1 downto miso_sfr'right) & MISO;	--! shift one bit to left
 				end if;
 			end if;
@@ -387,7 +384,12 @@ begin
 			elsif ( rising_edge(CLK) ) then
 				-- SCK Clock generator
 				if ( '1' = sck_cntr_ld ) then
-					sck_cntr_cnt <= to_unsigned(c_sck_div_2-2, sck_cntr_cnt'length);	-- preload counter
+					-- counter clock divider required?
+					if ( 1 < c_sck_div_2 ) then		--! SCK < CLK/2
+						sck_cntr_cnt <= to_unsigned(c_sck_div_2-2, sck_cntr_cnt'length);
+					else							--! SCK = CLK/2
+						sck_cntr_cnt	<= (others => '0');
+					end if;
 				elsif ( '1' = sck_cntr_en ) then
 					sck_cntr_cnt <= sck_cntr_cnt-1;
 				end if;
@@ -442,7 +444,7 @@ begin
 							'0' when others;	--! counter not needed, reload
 		
 		with current_state select				--! enable
-			bit_cntr_en	<= 	'1'	when SCK_CAP,	--! decrement counter
+			bit_cntr_en	<= 	'1'	when SCK_CHG,	--! decrement counter
 							'0' when others;	--! hold
 							
 		-- Flags
