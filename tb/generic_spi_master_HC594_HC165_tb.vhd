@@ -48,7 +48,7 @@ architecture sim of generic_spi_master_HC594_HC165_tb is
         constant NUM_CS         : integer               := 1;
         constant DW_SFR         : integer               := 8;
         constant CLK_HZ         : positive              := 50_000_000;
-        constant SCK_HZ         : positive              := 10_000_000;
+        constant SCK_HZ         : positive              := 25_000_000;
         constant RST_ACTIVE     : bit                   := '0';
         constant MISO_SYNC_STG  : natural               := 0;
         constant MISO_HYS_STG   : natural               := 0;
@@ -59,7 +59,8 @@ architecture sim of generic_spi_master_HC594_HC165_tb is
 
         -- Test
         constant loop_iter  : integer := 20;    --! number of test loop iteration
-        constant do_test_0  : boolean := true;  --! test0:
+        constant do_test_0  : boolean := true;  --! Test1: Send/receive single bytes
+        constant do_test_1  : boolean := true;  --! Test1: Send/receive random bytes
     -----------------------------
 
 
@@ -185,10 +186,37 @@ begin
 
 
         -------------------------
-        -- Test0: Transmit
+        -- Test0: Send/receive single byte
         -------------------------
         if ( DO_ALL_TEST or do_test_0 ) then
-            Report "Test0: Send/receive bytes";
+            Report "Test0: Send/receive single byte";
+            wait until rising_edge(CLK); wait for tskew;
+            EN      <= '1';
+            DI      <= x"55";
+            par_in  <= x"AA";
+            wait until rising_edge(CLK); wait for tskew;
+            EN      <= '0';
+            -- wait for transmission
+            while ( '1' = BSY ) loop
+                wait until rising_edge(CLK); wait for tskew;
+            end loop;
+            wait until rising_edge(CLK); wait for tskew;    --! propagation delay of SFR
+            -- compare MOSI
+            assert ( DI = par_out ) report "  MOSI expected 0x55" severity warning;
+            if not ( DI = par_out ) then good := false; end if;
+            -- compare MISO
+            assert ( DO = par_in ) report "  MISO expected 0xAA" severity warning;
+            if not ( DO = par_in ) then good := false; end if;
+            wait for 10*tclk;
+        end if;
+        -------------------------
+
+
+        -------------------------
+        -- Test1: Send/receive random bytes
+        -------------------------
+        if ( DO_ALL_TEST or do_test_1 ) then
+            Report "Test1: Send/receive random bytes";
             wait until rising_edge(CLK); wait for tskew;
             UNIFORM(seed1, seed2, rand);    --! dummy read, otherwise first rand is zero
             -- performs multi word send
@@ -205,6 +233,7 @@ begin
                 while ( '1' = BSY ) loop
                     wait until rising_edge(CLK); wait for tskew;
                 end loop;
+                wait until rising_edge(CLK); wait for tskew;    --! propagation delay of SFR
                 -- compare MOSI
                 assert ( DI = par_out ) report "  MOSI failed" severity warning;
                 if not ( DI = par_out ) then good := false; end if;
