@@ -370,47 +370,42 @@ begin
 	
 	
     ----------------------------------------------
-    -- Counter registers & Control
+    -- SCK counter & control
 	----------------------------------------------
 	
 		--***************************
-		p_cntr_reg : process( RST, CLK )
-		begin
-			if ( to_stdulogic(RST_ACTIVE) = RST ) then
-				-- Reset
-				sck_cntr_cnt	<= (others => '0');
-				bit_cntr_cnt 	<= (others => '0');
-				cs_cntr_cnt		<= (others => '0');
-			elsif ( rising_edge(CLK) ) then
-				-- SCK Clock generator
-				if ( '1' = sck_cntr_ld ) then
-					-- counter clock divider required?
-					if ( 1 < c_sck_div_2 ) then		--! SCK < CLK/2
-						sck_cntr_cnt <= to_unsigned(c_sck_div_2-2, sck_cntr_cnt'length);
-					else							--! SCK = CLK/2
-						sck_cntr_cnt	<= (others => '0');
-					end if;
-				elsif ( '1' = sck_cntr_en ) then
-					sck_cntr_cnt <= sck_cntr_cnt-1;
-				end if;
-				-- Bit counter
-				if ( '1' = bit_cntr_ld ) then
-					bit_cntr_cnt <= to_unsigned(DW_SFR, bit_cntr_cnt'length);
-				elsif ( '1' = bit_cntr_en ) then
-					bit_cntr_cnt <= bit_cntr_cnt-1;
-				end if;
-				-- CS counter
-				if ( '1' = cs_cntr_zero ) then
-					cs_cntr_cnt <= (others => '0');
-				elsif ( '1' = cs_cntr_en ) then
-					if ( cs_cntr_cnt = NUM_CS-1 ) then	--! overflow, always inside CSN vector
-						cs_cntr_cnt <= (others => '0');
-					else
-						cs_cntr_cnt <= cs_cntr_cnt + 1;	--! increment
+		-- c_sck_div_2 > 2 -> register counter required
+		--
+		g_sck_cntr: if c_sck_div_2 > 2 generate
+			p_sck_cntr : process( RST, CLK )
+			begin
+				if ( to_stdulogic(RST_ACTIVE) = RST ) then
+					-- Reset
+					sck_cntr_cnt <= (others => '0');
+				elsif ( rising_edge(CLK) ) then
+					-- SCK Clock generator
+					if ( '1' = sck_cntr_ld ) then
+						-- counter clock divider required?
+						if ( 1 < c_sck_div_2 ) then		--! SCK < CLK/2
+							sck_cntr_cnt <= to_unsigned(c_sck_div_2-2, sck_cntr_cnt'length);
+						else							--! SCK = CLK/2
+							sck_cntr_cnt <= (others => '0');
+						end if;
+					elsif ( '1' = sck_cntr_en ) then
+						sck_cntr_cnt <= sck_cntr_cnt-1;
 					end if;
 				end if;
-			end if;
-		end process p_cntr_reg;
+			end process p_sck_cntr;
+		end generate g_sck_cntr;
+		--***************************
+		
+		--***************************
+		-- c_sck_div_2 = 1 -> realized by FSM
+		-- c_sck_div_2 = 2 -> realized by going in FSM wait state
+		--
+		g_skip_sck_cntr: if c_sck_div_2 <= 2 generate
+			sck_cntr_cnt <= (others => '0');
+		end generate g_skip_sck_cntr;
 		--***************************
 		
 		--***************************
@@ -435,6 +430,41 @@ begin
 		sck_cntr_is_zero <= '1' when ( 0 = to_01(sck_cntr_cnt) ) else '0';
 		--***************************
 		
+	----------------------------------------------
+	
+	
+    ----------------------------------------------
+    -- Counter registers & Control
+	----------------------------------------------
+	
+		--***************************
+		p_cntr_reg : process( RST, CLK )
+		begin
+			if ( to_stdulogic(RST_ACTIVE) = RST ) then
+				-- Reset
+				bit_cntr_cnt 	<= (others => '0');
+				cs_cntr_cnt		<= (others => '0');
+			elsif ( rising_edge(CLK) ) then
+				-- Bit counter
+				if ( '1' = bit_cntr_ld ) then
+					bit_cntr_cnt <= to_unsigned(DW_SFR, bit_cntr_cnt'length);
+				elsif ( '1' = bit_cntr_en ) then
+					bit_cntr_cnt <= bit_cntr_cnt-1;
+				end if;
+				-- CS counter
+				if ( '1' = cs_cntr_zero ) then
+					cs_cntr_cnt <= (others => '0');
+				elsif ( '1' = cs_cntr_en ) then
+					if ( cs_cntr_cnt = NUM_CS-1 ) then	--! overflow, always inside CSN vector
+						cs_cntr_cnt <= (others => '0');
+					else
+						cs_cntr_cnt <= cs_cntr_cnt + 1;	--! increment
+					end if;
+				end if;
+			end if;
+		end process p_cntr_reg;
+		--***************************
+				
 		--***************************
 		-- Bit counter
 		with current_state select				--! reload
