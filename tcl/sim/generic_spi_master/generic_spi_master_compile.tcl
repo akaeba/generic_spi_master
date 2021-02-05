@@ -7,7 +7,7 @@
 ## @maintainer:     Andreas Kaeberlein
 ## @email:          andreas.kaeberlein@web.de
 ##
-## @file:           generic_spi_master_compile
+## @file:           generic_spi_master_compile.tcl
 ## @date:           2021-01-27
 ##
 ## @brief:          compile script
@@ -33,5 +33,5 @@ vcom -93 ${proj_dir}/hdl/generic_spi_master.vhd
 
 # Compile TB
 #
-vcom -93 ${proj_dir}/tb/generic_spi_master_tb.vhd
+vcom -93 ${proj_dir}/tb/generic_spi_master_tb.vhd;	# general testbench
 #
