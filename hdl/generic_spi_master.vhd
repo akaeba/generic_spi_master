@@ -374,9 +374,9 @@ begin
 	----------------------------------------------
 	
 		--***************************
-		-- c_sck_div_2 > 2 -> register counter required
+		-- c_sck_div_2 > 2 -> go in wait state, and count divider down
 		--
-		g_sck_cntr: if c_sck_div_2 > 2 generate
+		g_sck_cntr : if c_sck_div_2 > 2 generate
 			p_sck_cntr : process( RST, CLK )
 			begin
 				if ( to_stdulogic(RST_ACTIVE) = RST ) then
@@ -400,10 +400,10 @@ begin
 		--***************************
 		
 		--***************************
-		-- c_sck_div_2 = 1 -> realized by FSM
-		-- c_sck_div_2 = 2 -> realized by going in FSM wait state
+		-- c_sck_div_2 = 1 -> SCK toggles at every CLK rising edge, no wait state required
+		-- c_sck_div_2 = 2 -> go in wait state, but no counter needed cause divider is by wait state itself realized
 		--
-		g_skip_sck_cntr: if c_sck_div_2 <= 2 generate
+		g_skip_sck_cntr : if c_sck_div_2 <= 2 generate
 			sck_cntr_cnt <= (others => '0');
 		end generate g_skip_sck_cntr;
 		--***************************
@@ -434,16 +434,66 @@ begin
 	
 	
     ----------------------------------------------
+    -- CSN counter & control
+	----------------------------------------------
+	
+		--***************************
+		-- NUM_CS > 1 -> serve multiple CS in round robin method, starting at low index
+		--
+		g_csn_cntr : if NUM_CS > 1 generate
+			-- registered counter
+			p_csn_cntr : process( RST, CLK )
+			begin
+				if ( to_stdulogic(RST_ACTIVE) = RST ) then
+					-- Reset
+					cs_cntr_cnt	<= (others => '0');
+				elsif ( rising_edge(CLK) ) then
+					-- CS counter
+					if ( '1' = cs_cntr_zero ) then
+						cs_cntr_cnt <= (others => '0');
+					elsif ( '1' = cs_cntr_en ) then
+						if ( cs_cntr_cnt = NUM_CS-1 ) then	--! overflow, always inside CSN vector
+							cs_cntr_cnt <= (others => '0');
+						else
+							cs_cntr_cnt <= cs_cntr_cnt + 1;	--! increment
+						end if;
+					end if;
+				end if;
+			end process p_csn_cntr;
+			
+			-- control
+			with current_state select					--! clears counter
+				cs_cntr_zero	<= 	'1' when IDLE,		--! clear
+									'0' when others;	--! hold
+			
+			with current_state select				--! enable
+				cs_cntr_en	<= 	'1'	when CSN_END,	--! next channel
+								'0' when others;	--! hold
+								
+		end generate g_csn_cntr;
+		--***************************
+		
+		--***************************
+		-- NUM_CS = 1 -> no counter necessary
+		--
+		g_skip_csn_cntr : if NUM_CS <= 1 generate
+			cs_cntr_cnt	<= (others => '0');
+		end generate g_skip_csn_cntr;
+		--***************************
+			
+	----------------------------------------------
+	
+	
+    ----------------------------------------------
     -- Counter registers & Control
 	----------------------------------------------
 	
 		--***************************
-		p_cntr_reg : process( RST, CLK )
+		p_bit_cntr : process( RST, CLK )
 		begin
 			if ( to_stdulogic(RST_ACTIVE) = RST ) then
 				-- Reset
 				bit_cntr_cnt 	<= (others => '0');
-				cs_cntr_cnt		<= (others => '0');
 			elsif ( rising_edge(CLK) ) then
 				-- Bit counter
 				if ( '1' = bit_cntr_ld ) then
@@ -451,18 +501,8 @@ begin
 				elsif ( '1' = bit_cntr_en ) then
 					bit_cntr_cnt <= bit_cntr_cnt-1;
 				end if;
-				-- CS counter
-				if ( '1' = cs_cntr_zero ) then
-					cs_cntr_cnt <= (others => '0');
-				elsif ( '1' = cs_cntr_en ) then
-					if ( cs_cntr_cnt = NUM_CS-1 ) then	--! overflow, always inside CSN vector
-						cs_cntr_cnt <= (others => '0');
-					else
-						cs_cntr_cnt <= cs_cntr_cnt + 1;	--! increment
-					end if;
-				end if;
 			end if;
-		end process p_cntr_reg;
+		end process p_bit_cntr;
 		--***************************
 				
 		--***************************
@@ -482,17 +522,6 @@ begin
 		bit_cntr_is_init <= '1' when ( to_unsigned(DW_SFR, bit_cntr_cnt'length) = to_01(bit_cntr_cnt) ) else '0';	
 		--***************************
 		
-		--***************************
-		-- CSN counter counter
-		with current_state select					--! clears counter
-			cs_cntr_zero	<= 	'1' when IDLE,		--! clear
-								'0' when others;	--! hold
-		
-		with current_state select				--! enable
-			cs_cntr_en	<= 	'1'	when CSN_END,	--! next channel
-							'0' when others;	--! hold
-		--***************************
-	
 	----------------------------------------------
 	
 	
