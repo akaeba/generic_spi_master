@@ -178,8 +178,6 @@ architecture rtl of generic_spi_master is
 		signal csn_ff			: std_logic_vector(CSN'range);	--! CSN registered out
 		signal csn_ff_ld		: std_logic;
 		signal csn_ff_en		: std_logic;
-		
-		
 	----------------------------------------------
 	
 begin
@@ -635,7 +633,11 @@ begin
 					next_state <= SCK_CAP_WT;
 				else
 					if ( 0 = bit_cntr_cnt ) then	--! allows SCK = CLK/2 speed
-						next_state <= CSN_END;
+						if ( '0' = c_cpha ) then	--! SPI mode 0/2
+							next_state <= CSN_END;
+						else						--! SPI mode 1/3
+							next_state <= CSN_FRC;	--! de-select SPI slave
+						end if;
 					else
 						next_state <= SCK_CHG;
 					end if;	
@@ -647,7 +649,11 @@ begin
 			when SCK_CAP_WT =>
 				if ( '1' = sck_cntr_is_zero ) then
 					if ( 0 = bit_cntr_cnt ) then
-						next_state <= CSN_END;	--! waits half clock SCK cycle before CS disabling
+						if ( '0' = c_cpha ) then	--! SPI mode 0/2
+							next_state <= CSN_END;	--! waits half clock SCK cycle before CS disabling
+						else						--! SPI mode 1/3
+							next_state <= CSN_FRC;	--! de-select SPI slave
+						end if;
 					else
 						next_state <= SCK_CHG;
 					end if;
