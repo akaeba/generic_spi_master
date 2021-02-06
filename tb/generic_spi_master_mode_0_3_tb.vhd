@@ -53,14 +53,12 @@ architecture sim of generic_spi_master_mode_0_3_tb is
         constant RST_ACTIVE     : bit                   := '1';
         constant MISO_SYNC_STG  : natural               := 0;
         constant MISO_HYS_STG   : natural               := 0;
-
         -- Clock
         constant tclk   : time  := 1 sec / CLK_HZ;  --! 1MHz clock
         constant tskew  : time  := tclk / 50;       --! data skew
-
         -- Test
         constant loop_iter  : integer := 20;    --! number of test loop iteration
-        constant do_test_0  : boolean := true;  --! test0:
+        constant do_test_0  : boolean := true;  --! test0: Send/Receive random data bytes
     -----------------------------
 
 
@@ -251,29 +249,39 @@ begin
 
     ----------------------------------------------
     -- MISO SFR
+    --  @see: https://de.wikipedia.org/wiki/Serial_Peripheral_Interface#/media/Datei:SPI_timing_diagram2.svg
     p_miso_sfr : process ( SCK, CSN )
     begin
-        if ( falling_edge(CSN(0)) ) then
-            miso_reg <= DO_CS0;
-        elsif( falling_edge(CSN(1)) ) then
-            miso_reg <= DO_CS1;
-        elsif ( falling_edge(SCK) ) then
-            miso_reg <= miso_reg(miso_reg'left-1 downto miso_reg'right) & '0';
+        if ( (0 = SPI_MODE) or (2 = SPI_MODE) ) then
+            if ( falling_edge(CSN(0)) ) then
+                miso_reg <= DO_CS0;
+            elsif( falling_edge(CSN(1)) ) then
+                miso_reg <= DO_CS1;
+            elsif ( (0 = SPI_MODE) and (falling_edge(SCK)) ) then
+                miso_reg <= miso_reg(miso_reg'left-1 downto miso_reg'right) & '0';
+            elsif ( (2 = SPI_MODE) and (rising_edge(SCK)) ) then
+                miso_reg <= miso_reg(miso_reg'left-1 downto miso_reg'right) & '0';
+            end if;
         end if;
     end process p_miso_sfr;
     -- output
-    MISO <= miso_reg(miso_reg'left) when ( '0' = CSN(0) or '0' = CSN(1) ) else 'Z'; --! gate output
+    MISO <= miso_reg(miso_reg'left) after tskew when ( '0' = CSN(0) or '0' = CSN(1) ) else 'Z'; --! gate output
     MISO <= 'L';                                                                    --! pull down
     ----------------------------------------------
 
 
     ----------------------------------------------
     -- MOSI SFR
+    --  @see: https://de.wikipedia.org/wiki/Serial_Peripheral_Interface#/media/Datei:SPI_timing_diagram2.svg
     p_mosi_sfr : process ( SCK, CSN )
     begin
-        if ( '0' = CSN(0) or '0' = CSN(1) ) then
-            if ( rising_edge(SCK) ) then
-                mosi_reg <= mosi_reg(mosi_reg'left-1 downto mosi_reg'right) & MOSI;
+        if ( (0 = SPI_MODE) or (2 = SPI_MODE) ) then
+            if ( '0' = CSN(0) or '0' = CSN(1) ) then
+                if ( (0 = SPI_MODE) and (rising_edge(SCK)) ) then
+                    mosi_reg <= mosi_reg(mosi_reg'left-1 downto mosi_reg'right) & MOSI after tskew;
+                elsif ( (2 = SPI_MODE) and (falling_edge(SCK)) ) then
+                    mosi_reg <= mosi_reg(mosi_reg'left-1 downto mosi_reg'right) & MOSI after tskew;
+                end if;
             end if;
         end if;
     end process p_mosi_sfr;
