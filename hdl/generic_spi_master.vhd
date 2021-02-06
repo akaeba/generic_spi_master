@@ -377,6 +377,7 @@ begin
 		-- c_sck_div_2 > 2 -> go in wait state, and count divider down
 		--
 		g_sck_cntr : if c_sck_div_2 > 2 generate
+			-- registered counter
 			p_sck_cntr : process( RST, CLK )
 			begin
 				if ( to_stdulogic(RST_ACTIVE) = RST ) then
@@ -396,6 +397,24 @@ begin
 					end if;
 				end if;
 			end process p_sck_cntr;
+			
+			-- control
+			with current_state select									--! reload
+				sck_cntr_ld	<=	sck_cntr_is_zero	when CSN_START_WT,	--! wait for target shift clock generation, and overflow
+								sck_cntr_is_zero 	when SCK_CHG_WT,	--! 
+								sck_cntr_is_zero 	when SCK_CAP_WT,	--!
+								sck_cntr_is_zero	when CSN_END_WT,	--!
+								sck_cntr_is_zero	when CSN_FRC_WT,	--!
+								'1' 				when others;		--! counter not needed, reload
+			
+			with current_state select					--! enable
+				sck_cntr_en	<= 	'1'	when CSN_START_WT,	--! count to achieve target clock
+								'1' when SCK_CHG_WT,	--! 
+								'1' when SCK_CAP_WT,	--!
+								'1'	when CSN_END_WT,	--!
+								'1' when CSN_FRC_WT,	--!
+								'0' when others;		--! no count
+			
 		end generate g_sck_cntr;
 		--***************************
 		
@@ -408,24 +427,7 @@ begin
 		end generate g_skip_sck_cntr;
 		--***************************
 		
-		--***************************
-		-- SCK clock divider
-		with current_state select									--! reload
-			sck_cntr_ld	<=	sck_cntr_is_zero	when CSN_START_WT,	--! wait for target shift clock generation, and overflow
-							sck_cntr_is_zero 	when SCK_CHG_WT,	--! 
-							sck_cntr_is_zero 	when SCK_CAP_WT,	--!
-							sck_cntr_is_zero	when CSN_END_WT,	--!
-							sck_cntr_is_zero	when CSN_FRC_WT,	--!
-							'1' 				when others;		--! counter not needed, reload
-		
-		with current_state select					--! enable
-			sck_cntr_en	<= 	'1'	when CSN_START_WT,	--! count to achieve target clock
-							'1' when SCK_CHG_WT,	--! 
-							'1' when SCK_CAP_WT,	--!
-							'1'	when CSN_END_WT,	--!
-							'1' when CSN_FRC_WT,	--!
-							'0' when others;		--! no count
-		
+		--***************************		
 		-- Flags
 		sck_cntr_is_zero <= '1' when ( 0 = to_01(sck_cntr_cnt) ) else '0';
 		--***************************
