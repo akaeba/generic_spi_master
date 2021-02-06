@@ -679,16 +679,24 @@ begin
 			--***************************
 			-- Limits CSN disable/enable to half SCK
 			when CSN_FRC =>
-				if ( 1 < c_sck_div_2 ) then				--! clock division required
+				if ( 1 < c_sck_div_2 ) then					--! clock division required
 					next_state <= CSN_FRC_WT;
-				else									--! SCK = CLK/2 speed
-					if ( 0 = cs_cntr_cnt ) then 		--! NUM_CS-1 go in idle, through overflow in CSN_END state, check for zero
-						next_state <= IDLE;				--! all channels served
-					else
-						if ( '0' = c_cpha ) then		--! SPI mode 0/2
-							next_state <= SCK_CHG;
+				else										--! SCK = CLK/2 speed
+					if ( 0 = cs_cntr_cnt ) then 			--! NUM_CS-1 go in idle, through overflow in CSN_END state, check for zero
+						if ( '1' = EN ) then				--! continuous run
+							if ( '0' = c_cpha ) then		--! SPI mode 0/2
+								next_state <= SCK_CHG;
+							else							--! SPI mode 1/3
+								next_state <= CSN_START;	--! next CS selected channel
+							end if;
 						else
-							next_state <= CSN_START;	--! next CS selected channel
+							next_state <= IDLE;				--! all channels served
+						end if;
+					else
+						if ( '0' = c_cpha ) then			--! SPI mode 0/2
+							next_state <= SCK_CHG;
+						else								--! SPI mode 1/3
+							next_state <= CSN_START;		--! next CS selected channel
 						end if;
 					end if;
 				end if;
@@ -698,13 +706,21 @@ begin
 			-- CSN SCK division wait
 			when CSN_FRC_WT =>
 				if ( '1' = sck_cntr_is_zero ) then
-					if ( 0 = cs_cntr_cnt ) then 		--! NUM_CS-1 go in idle, through overflow in CSN_END state, check for zero
-						next_state <= IDLE;				--! all channels served
-					else
-						if ( '0' = c_cpha ) then		--! SPI mode 0/2
-							next_state <= SCK_CHG;
+					if ( 0 = cs_cntr_cnt ) then 			--! NUM_CS-1 go in idle, through overflow in CSN_END state, check for zero
+						if ( '1' = EN ) then				--! continuous run
+							if ( '0' = c_cpha ) then		--! SPI mode 0/2
+								next_state <= SCK_CHG;
+							else							--! SPI mode 1/3
+								next_state <= CSN_START;	--! next CS selected channel
+							end if;
 						else
-							next_state <= CSN_START;	--! next CS selected channel
+							next_state <= IDLE;				--! all channels served
+						end if;
+					else
+						if ( '0' = c_cpha ) then			--! SPI mode 0/2
+							next_state <= SCK_CHG;
+						else								--! SPI mode 1/3
+							next_state <= CSN_START;		--! next CS selected channel
 						end if;
 					end if;
 				else
