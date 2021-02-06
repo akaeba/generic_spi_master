@@ -8,12 +8,11 @@
 -- @email:          andreas.kaeberlein@web.de
 --
 -- @note:           VHDL'93
--- @file:           generic_spi_master_mode_0_tb.vhd
+-- @file:           generic_spi_master_mode_0_3_tb.vhd
 -- @date:           2021-01-27
 --
--- @brief:          testbench
+-- @brief:          tests in SPI mode 0 to 3, NUMCS=2, CLK_HZ/SCK_HZ=5
 --
---                  test setup: SPI Mode 0, NUMCS=2, CLK_HZ/SCK_HZ=5
 --************************************************************************
 
 
@@ -22,7 +21,8 @@
 library IEEE;
     use IEEE.std_logic_1164.all;
     use IEEE.numeric_std.all;
-    use ieee.math_real.all; --! for UNIFORM, TRUNC
+    use ieee.std_logic_misc.and_reduce;
+    use ieee.math_real.all;
 library work;
 --------------------------------------------------------------------------
 
@@ -30,22 +30,22 @@ library work;
 
 --------------------------------------------------------------------------
 -- testbench
-entity generic_spi_master_mode_0_tb is
+entity generic_spi_master_mode_0_3_tb is
 generic (
-            DO_ALL_TEST : boolean := false  --! switch for enabling all tests
+            DO_ALL_TEST : boolean               := false;   --! switch for enabling all tests
+            SPI_MODE    : integer range 0 to 3  := 0        --! used SPI transfer mode
         );
-end entity generic_spi_master_mode_0_tb;
+end entity generic_spi_master_mode_0_3_tb;
 --------------------------------------------------------------------------
 
 
 
 --------------------------------------------------------------------------
-architecture sim of generic_spi_master_mode_0_tb is
+architecture sim of generic_spi_master_mode_0_3_tb is
 
     -----------------------------
     -- Constant
         -- DUT
-        constant SPI_MODE       : integer range 0 to 3  := 0;
         constant NUM_CS         : integer               := 2;
         constant DW_SFR         : integer               := 8;
         constant CLK_HZ         : positive              := 50_000_000;
@@ -125,6 +125,7 @@ begin
     p_stimuli_process : process
         -- tb help variables
             variable good           : boolean := true;
+            variable csnCheck       : std_logic_vector(NUM_CS-1 downto 0);
         -- variables for random number generator
             variable seed1, seed2   : positive;
             variable rand           : real;
@@ -168,9 +169,9 @@ begin
             Report "Test0: Send/Receive random data bytes";
             wait until rising_edge(CLK); wait for tskew;
             UNIFORM(seed1, seed2, rand);    --! dummy read, otherwise first rand is zero
+            EN  <=  '1'; --! enable core
             -- performs multi data send/receive
             for i in 0 to loop_iter-1 loop
-                EN  <=  '1';                    --! enable core
                 -- SPI TX, XCS[0]
                 UNIFORM(seed1, seed2, rand);
                 DI_CS0  <= std_logic_vector(to_unsigned(integer(round(rand*(2.0**DI_CS0'length-1.0))), DI_CS0'length));
@@ -183,10 +184,11 @@ begin
                 -- SPI RX, XCS[1]
                 UNIFORM(seed1, seed2, rand);
                 DO_CS1  <= std_logic_vector(to_unsigned(integer(round(rand*(2.0**DO_CS1'length-1.0))), DO_CS1'length));
+                -- all Channels updated -> needed to check
+                csnCheck := (others => '0');
                 wait until rising_edge(CLK); wait for tskew;
-                EN      <=  '0';
                 -- wait for transmission
-                while ( '1' = BSY ) loop
+                while ( '0' = and_reduce(csnCheck) ) loop
                     wait until rising_edge(CLK); wait for tskew;
                     -- check Channel 0
                     if ( '1' = DO_WR(0) ) then
@@ -196,6 +198,8 @@ begin
                         -- MISO
                         assert ( DO_CS0 = DO ) report "  MISO Byte CSN0 failed" severity warning;
                         if not ( DO_CS0 = DO ) then good := false; end if;
+                        -- mark as checked
+                        csnCheck(0) := '1';
                     end if;
                     -- check Channel 1
                     if ( '1' = DO_WR(1) ) then
@@ -205,8 +209,15 @@ begin
                         -- MISO
                         assert ( DO_CS1 = DO ) report "  MISO Byte CSN1 failed" severity warning;
                         if not ( DO_CS1 = DO ) then good := false; end if;
+                        -- mark as checked
+                        csnCheck(1) := '1';
                     end if;
                 end loop;
+                wait until rising_edge(CLK); wait for tskew;
+            end loop;
+            EN  <=  '0';
+            wait until rising_edge(CLK); wait for tskew;
+            while ( '1' = BSY ) loop
                 wait until rising_edge(CLK); wait for tskew;
             end loop;
             wait for 10*tclk;
