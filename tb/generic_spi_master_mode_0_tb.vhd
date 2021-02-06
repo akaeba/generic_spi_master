@@ -162,7 +162,7 @@ begin
 
 
         -------------------------
-        -- Test0: Transmit
+        -- Test0: Send/Receive random data bytes
         -------------------------
         if ( DO_ALL_TEST or do_test_0 ) then
             Report "Test0: Send/Receive random data bytes";
