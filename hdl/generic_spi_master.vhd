@@ -619,11 +619,7 @@ begin
 			-- MOSI changes (SCK I/II) - clock division
 			when SCK_CHG_WT =>
 				if ( '1' = sck_cntr_is_zero ) then
-					--if ( ('0' = c_cpha) and (1 = bit_cntr_cnt) ) then	--! SPI Mode 0/2: skip last half SCK cycle
-					--	next_state <= CSN_END;							--! waits half clock SCK cycle before CS disabling
-					--else
 					next_state <= SCK_CAP;
-					--end if;
 				else
 					next_state <= SCK_CHG_WT;
 				end if;
@@ -691,20 +687,24 @@ begin
 				if ( 1 < c_sck_div_2 ) then					--! clock division required
 					next_state <= CSN_FRC_WT;
 				else										--! SCK = CLK/2 speed
-					if ( 0 = cs_cntr_cnt ) then 			--! NUM_CS-1 go in idle, through overflow in CSN_END state, check for zero
-						if ( '1' = EN ) then				--! continuous run
-							if ( '0' = c_cpha ) then		--! SPI mode 0/2
-								next_state <= SCK_CHG;
-							else							--! SPI mode 1/3
-								next_state <= CSN_START;	--! next CS selected channel
+					if ( '0' = c_cpha ) then				--! SPI Mode 0/2
+						if ( 0 = cs_cntr_cnt ) then 		--! all CSN channels served
+							if ( '1' = EN ) then			--! continuous run
+								next_state <= SCK_CHG;		--! next frame
+							else
+								next_state <= IDLE;			--! all channels served
 							end if;
 						else
-							next_state <= IDLE;				--! all channels served
+							next_state <= SCK_CHG;			--! CSN channels pending
 						end if;
-					else
-						if ( '0' = c_cpha ) then			--! SPI mode 0/2
-							next_state <= SCK_CHG;
-						else								--! SPI mode 1/3
+					else									--! SPI Mode 1/3
+						if ( NUM_CS-1 = cs_cntr_cnt ) then	--! all CSN channels served
+							if ( '1' = EN ) then			--! continuous run
+								next_state <= CSN_START;	--! next CS selected channel
+							else
+								next_state <= IDLE;			--! all channels served
+							end if;
+						else								--! CSN channels pending
 							next_state <= CSN_START;		--! next CS selected channel
 						end if;
 					end if;
@@ -715,20 +715,24 @@ begin
 			-- CSN SCK division wait
 			when CSN_FRC_WT =>
 				if ( '1' = sck_cntr_is_zero ) then
-					if ( 0 = cs_cntr_cnt ) then 			--! NUM_CS-1 go in idle, through overflow in CSN_END state, check for zero
-						if ( '1' = EN ) then				--! continuous run
-							if ( '0' = c_cpha ) then		--! SPI mode 0/2
-								next_state <= SCK_CHG;
-							else							--! SPI mode 1/3
-								next_state <= CSN_START;	--! next CS selected channel
+					if ( '0' = c_cpha ) then				--! SPI Mode 0/2
+						if ( 0 = cs_cntr_cnt ) then 		--! all CSN channels served
+							if ( '1' = EN ) then			--! continuous run
+								next_state <= SCK_CHG;		--! next frame
+							else
+								next_state <= IDLE;			--! all channels served
 							end if;
 						else
-							next_state <= IDLE;				--! all channels served
+							next_state <= SCK_CHG;			--! CSN channels pending
 						end if;
-					else
-						if ( '0' = c_cpha ) then			--! SPI mode 0/2
-							next_state <= SCK_CHG;
-						else								--! SPI mode 1/3
+					else									--! SPI Mode 1/3
+						if ( 0 = cs_cntr_cnt ) then			--! all CSN channels served, in case of CSN_FRC_WT, cs_cntr is increment/overflows in CSN_FRC, therefore check here for zero
+							if ( '1' = EN ) then			--! continuous run
+								next_state <= CSN_START;	--! next CS selected channel
+							else
+								next_state <= IDLE;			--! all channels served
+							end if;
+						else								--! CSN channels pending
 							next_state <= CSN_START;		--! next CS selected channel
 						end if;
 					end if;
