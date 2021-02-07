@@ -22,6 +22,12 @@ An easy customizable multi chip select supporting _Serial Peripheral Interface_ 
 | Cyclone 10 (FPGA) |       |           |      |        |
 
 
+## Example
+
+
+<center><img src="https://github.com/akaeba/generic-spi-master/blob/master/doc/readme/spi_master_hc594_hc165_access.png" height="50%" width="50%" alt="SPI master interfaces shift register HC594 and HC165 and one data byte is transferred" title="SPI master interfaces shift register HC594 and HC165" /></center>
+
+
 ## References
 
  * [Wikipedia: SPI](https://en.wikipedia.org/wiki/Serial_Peripheral_Interface)
