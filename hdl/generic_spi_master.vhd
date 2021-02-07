@@ -11,6 +11,7 @@
 -- @file:           generic_spi_master.vhd
 -- @date:           2021-01-23
 --
+-- @see:        	https://github.com/akaeba/generic-spi-master
 -- @brief:          SPI Master
 --
 --                  Generic SPI master with multiple chip select lines
@@ -341,9 +342,10 @@ begin
 	
 		--***************************
 		-- SFR Control
-		with current_state select				--! External capturing
-			miso_load	<=	'1'	when CSN_END,	--! capture
-							'0' when others;	--! no new data
+		with current_state select							--! External capturing
+			miso_load	<=	(not c_cpha)	when CSN_END,	--! capture, SPI mode 0/2
+							c_cpha			when CSN_FRC,	--! capture, SPI mode 1/3
+							'0' 			when others;	--! no new data
 		
 		with current_state select				--! MOSI shift
 			miso_shift	<=	'1'	when SCK_CAP,	--! shift
@@ -466,9 +468,10 @@ begin
 				cs_cntr_zero	<= 	'1' when IDLE,		--! clear
 									'0' when others;	--! hold
 			
-			with current_state select				--! enable
-				cs_cntr_en	<= 	'1'	when CSN_END,	--! next channel
-								'0' when others;	--! hold
+			with current_state select							--! enable
+				cs_cntr_en	<= 	(not c_cpha)	when CSN_END,	--! next channel, SPI Mode 0/2
+								c_cpha			when CSN_FRC,	--! next channel, SPI Mode 1/3
+								'0' 			when others;	--! hold
 								
 		end generate g_csn_cntr;
 		--***************************
