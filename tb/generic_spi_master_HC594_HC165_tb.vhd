@@ -52,11 +52,9 @@ architecture sim of generic_spi_master_HC594_HC165_tb is
         constant RST_ACTIVE     : bit                   := '0';
         constant MISO_SYNC_STG  : natural               := 0;
         constant MISO_HYS_STG   : natural               := 0;
-
         -- Clock
         constant tclk   : time  := 1 sec / CLK_HZ;  --! period of source clock
         constant tskew  : time  := tclk / 50;       --! data skew
-
         -- Test
         constant loop_iter  : integer := 20;    --! number of test loop iteration
         constant do_test_0  : boolean := true;  --! Test1: Send/receive single bytes
@@ -84,7 +82,6 @@ architecture sim of generic_spi_master_HC594_HC165_tb is
         signal XCSN     : std_logic;                    --! complementary low active chip-select (high-active)
         signal par_out  : std_logic_vector(7 downto 0); --! parallel SFR out (HC594)
         signal par_in   : std_logic_vector(7 downto 0); --! parallel SFR in (HC165)
-
     -----------------------------
 
 begin
