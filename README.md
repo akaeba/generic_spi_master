@@ -10,6 +10,8 @@ An easy customizable multi chip select supporting _Serial Peripheral Interface_ 
 
 * SPI mode 0-3
 * arbitrary number of chip-selects (CSN)
+* SCK<sub>max</sub>=CLK/2
+* SCK at compile time settable
 
 
 ## Interface
@@ -47,7 +49,7 @@ _Generics are settable while compile time._
 |  2        |  1   |   0  |
 |  3        |  1   |   1  |
 
-<center><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/SPI_timing_diagram.svg/2000px-SPI_timing_diagram.svg.png" height="50%" width="50%" alt="Wikimedia timing diagram SPI modes" title="SPI modes timing diagram" /></center>
+<center><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/SPI_timing_diagram.svg/2000px-SPI_timing_diagram.svg.png" height="75%" width="75%" alt="Wikimedia timing diagram SPI modes" title="SPI modes timing diagram" /></center>
 
 
 ## Resource allocation

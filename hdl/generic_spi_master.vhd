@@ -11,7 +11,7 @@
 -- @file:           generic_spi_master.vhd
 -- @date:           2021-01-23
 --
--- @see:            https://github.com/akaeba/generic-spi-master
+-- @see:            https://github.com/akaeba/generic_spi_master
 -- @brief:          SPI Master
 --
 --                  Generic SPI master with multiple chip select lines
@@ -36,7 +36,7 @@
 --      RST_ACTIVE
 --      DO_SFR_OUT:
 --      MISO_SYNC_STG:  number of sync stages; synchronizes MISO data input;    values = 0,2,3
---      MISO_HYS_STG
+--      MISO_FILT
 --
 --  Miscellaneous
 --  -------------
@@ -75,22 +75,22 @@ library IEEE;
 -- Generic SPI Master
 entity generic_spi_master is
 generic (
-            SPI_MODE        : integer range 0 to 3  := 0;           --! SPI transfer Mode
-            NUM_CS          : positive              := 1;           --! Number of Channels (chip-selects)
-            DW_SFR          : integer               := 8;           --! data width shift register
-            CLK_HZ          : positive              := 50_000_000;  --! clock frequency
-            SCK_HZ          : positive              := 1_000_000;   --! Shift clock rate; minimal frequency - can be higher due numeric rounding effects
-            RST_ACTIVE      : bit                   := '1';         --! Reset active level
-            MISO_SYNC_STG   : natural               := 2;           --! number of MISO sync stages, 0: not implemented
-            MISO_HYS_STG    : natural               := 0            --! number of bit length for hysteresis, 0: not implemented
+            SPI_MODE    : integer range 0 to 3  := 0;           --! SPI transfer Mode
+            NUM_CS      : positive              := 1;           --! Number of Channels (chip-selects)
+            DW_SFR      : integer               := 8;           --! data width shift register
+            CLK_HZ      : positive              := 50_000_000;  --! clock frequency
+            SCK_HZ      : positive              := 1_000_000;   --! Shift clock rate; minimal frequency - can be higher due numeric rounding effects
+            RST_ACTIVE  : bit                   := '1';         --! Reset active level
+            MISO_SYNC   : natural               := 2;           --! number of MISO sync stages, 0: not implemented
+            MISO_FILT   : natural               := 0            --! number of bit length for hysteresis, 0: not implemented
         );
 port    (
             -- Clock/Reset
             RST     : in    std_logic;                              --! asynchronous reset
             CLK     : in    std_logic;                              --! clock, rising edge
             -- SPI
-            SCK     : out   std_logic;                              --! Shift forward clock
             CSN     : out   std_logic_vector(NUM_CS-1 downto 0);    --! chip select
+            SCK     : out   std_logic;                              --! Shift forward clock
             MOSI    : out   std_logic;                              --! serial data out;    master-out / slave-in
             MISO    : in    std_logic;                              --! serial data in;     master-in  / slave-out
             -- Parallel
@@ -561,7 +561,7 @@ begin
                                 current_state,      --! current FSM state
                                 EN,                 --! module inputs, enables transceiver
                                 sck_cntr_is_zero,   --! sck counter expired
-                                bit_cntr_cnt,       --! count shifted times
+                                bit_cntr_is_zero,   --! count shifted times
                                 cs_cntr_cnt         --! selects active CS channel
                             )
     begin
@@ -631,11 +631,11 @@ begin
                 if ( 1 < c_sck_div_2 ) then     --! clock division required
                     next_state <= SCK_CAP_WT;
                 else
-                    if ( 0 = bit_cntr_cnt ) then    --! allows SCK = CLK/2 speed
-                        if ( '0' = c_cpha ) then    --! SPI mode 0/2
+                    if ( '1' = bit_cntr_is_zero ) then  --! allows SCK = CLK/2 speed
+                        if ( '0' = c_cpha ) then        --! SPI mode 0/2
                             next_state <= CSN_END;
-                        else                        --! SPI mode 1/3
-                            next_state <= CSN_FRC;  --! de-select SPI slave
+                        else                            --! SPI mode 1/3
+                            next_state <= CSN_FRC;      --! de-select SPI slave
                         end if;
                     else
                         next_state <= SCK_CHG;
@@ -647,7 +647,7 @@ begin
             -- MISO captured (SCK II/II) - clock division
             when SCK_CAP_WT =>
                 if ( '1' = sck_cntr_is_zero ) then
-                    if ( 0 = bit_cntr_cnt ) then
+                    if ( '1' = bit_cntr_is_zero ) then
                         if ( '0' = c_cpha ) then    --! SPI mode 0/2
                             next_state <= CSN_END;  --! waits half clock SCK cycle before CS disabling
                         else                        --! SPI mode 1/3

@@ -11,6 +11,7 @@
 -- @file:           generic_spi_master_mode_0_3_tb.vhd
 -- @date:           2021-01-27
 --
+-- @see:            https://github.com/akaeba/generic_spi_master
 -- @brief:          tests in SPI mode 0 to 3, NUMCS=2, CLK_HZ/SCK_HZ=5
 --
 --************************************************************************
@@ -46,13 +47,13 @@ architecture sim of generic_spi_master_mode_0_3_tb is
     -----------------------------
     -- Constant
         -- DUT
-        constant NUM_CS         : integer               := 2;
-        constant DW_SFR         : integer               := 8;
-        constant CLK_HZ         : positive              := 50_000_000;
-        constant SCK_HZ         : positive              := 10_000_000;
-        constant RST_ACTIVE     : bit                   := '1';
-        constant MISO_SYNC_STG  : natural               := 0;
-        constant MISO_HYS_STG   : natural               := 0;
+        constant NUM_CS     : integer   := 2;
+        constant DW_SFR     : integer   := 8;
+        constant CLK_HZ     : positive  := 50_000_000;
+        constant SCK_HZ     : positive  := 10_000_000;
+        constant RST_ACTIVE : bit       := '1';
+        constant MISO_SYNC  : natural   := 0;
+        constant MISO_FILT  : natural   := 0;
         -- Clock
         constant tclk   : time  := 1 sec / CLK_HZ;  --! 1MHz clock
         constant tskew  : time  := tclk / 50;       --! data skew
@@ -92,20 +93,20 @@ begin
     -- DUT
     DUT : entity work.generic_spi_master
         generic map (
-                        SPI_MODE        => SPI_MODE,
-                        NUM_CS          => NUM_CS,
-                        DW_SFR          => DW_SFR,
-                        CLK_HZ          => CLK_HZ,
-                        SCK_HZ          => SCK_HZ,
-                        RST_ACTIVE      => RST_ACTIVE,
-                        MISO_SYNC_STG   => MISO_SYNC_STG,
-                        MISO_HYS_STG    => MISO_HYS_STG
+                        SPI_MODE    => SPI_MODE,
+                        NUM_CS      => NUM_CS,
+                        DW_SFR      => DW_SFR,
+                        CLK_HZ      => CLK_HZ,
+                        SCK_HZ      => SCK_HZ,
+                        RST_ACTIVE  => RST_ACTIVE,
+                        MISO_SYNC   => MISO_SYNC,
+                        MISO_FILT   => MISO_FILT
                     )
         port map    (
                         RST   => RST,
                         CLK   => CLK,
-                        SCK   => SCK,
                         CSN   => CSN,
+                        SCK   => SCK,
                         MOSI  => MOSI,
                         MISO  => MISO,
                         DI    => DI,

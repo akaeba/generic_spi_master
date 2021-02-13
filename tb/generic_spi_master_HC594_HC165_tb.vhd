@@ -11,6 +11,7 @@
 -- @file:           generic_spi_master_HC594_HC165_tb.vhd
 -- @date:           2021-01-27
 --
+-- @see:            https://github.com/akaeba/generic_spi_master
 -- @brief:          SPI master w/ HC594 and HC165 SFR register
 --
 --************************************************************************
@@ -44,14 +45,14 @@ architecture sim of generic_spi_master_HC594_HC165_tb is
     -----------------------------
     -- Constant
         -- DUT
-        constant SPI_MODE       : integer range 0 to 3  := 2;
-        constant NUM_CS         : integer               := 1;
-        constant DW_SFR         : integer               := 8;
-        constant CLK_HZ         : positive              := 50_000_000;
-        constant SCK_HZ         : positive              := 25_000_000;
-        constant RST_ACTIVE     : bit                   := '0';
-        constant MISO_SYNC_STG  : natural               := 0;
-        constant MISO_HYS_STG   : natural               := 0;
+        constant SPI_MODE   : integer range 0 to 3  := 2;
+        constant NUM_CS     : integer               := 1;
+        constant DW_SFR     : integer               := 8;
+        constant CLK_HZ     : positive              := 50_000_000;
+        constant SCK_HZ     : positive              := 25_000_000;
+        constant RST_ACTIVE : bit                   := '0';
+        constant MISO_SYNC  : natural               := 0;
+        constant MISO_FILT  : natural               := 0;
         -- Clock
         constant tclk   : time  := 1 sec / CLK_HZ;  --! period of source clock
         constant tskew  : time  := tclk / 50;       --! data skew
@@ -90,20 +91,20 @@ begin
     -- DUT
     DUT : entity work.generic_spi_master
         generic map (
-                        SPI_MODE        => SPI_MODE,        --! Number of Channels (chip-selects)
-                        NUM_CS          => NUM_CS,          --! data width shift register
-                        DW_SFR          => DW_SFR,          --! clock frequency
-                        CLK_HZ          => CLK_HZ,          --! Shift clock rate; minimal frequency - can be higher due numeric rounding effects
-                        SCK_HZ          => SCK_HZ,          --! Reset active level
-                        RST_ACTIVE      => RST_ACTIVE,      --! number of MISO sync stages, 0: not implemented
-                        MISO_SYNC_STG   => MISO_SYNC_STG,   --! number of bit length for hysteresis, 0: not implemented
-                        MISO_HYS_STG    => MISO_HYS_STG
+                        SPI_MODE    => SPI_MODE,    --! SPI transfer Mode
+                        NUM_CS      => NUM_CS,      --! Number of Channels (chip-selects)
+                        DW_SFR      => DW_SFR,      --! data width shift register
+                        CLK_HZ      => CLK_HZ,      --! clock frequency
+                        SCK_HZ      => SCK_HZ,      --! Shift clock rate; minimal frequency - can be higher due numeric rounding effects
+                        RST_ACTIVE  => RST_ACTIVE,  --! Reset active level
+                        MISO_SYNC   => MISO_SYNC,   --! number of MISO sync stages, 0: not implemented
+                        MISO_FILT   => MISO_FILT    --! number of bit length for hysteresis, 0: not implemented
                     )
         port map    (
                         RST   => XRST,  --! asynchronous reset
                         CLK   => CLK,   --! clock, rising edge
-                        SCK   => SCK,   --! Shift forward clock
                         CSN   => CSN,   --! chip select
+                        SCK   => SCK,   --! Shift forward clock
                         MOSI  => MOSI,  --! serial data out;    master-out / slave-in
                         MISO  => MISO,  --! serial data in;     master-in  / slave-out
                         DI    => DI,    --! Parallel data-in, transmitted via MOSI
