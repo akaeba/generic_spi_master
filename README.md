@@ -10,8 +10,8 @@ An easy customizable multi chip select supporting _Serial Peripheral Interface_ 
 
 * SPI mode 0-3
 * arbitrary number of chip-selects (CSN)
-* SCK<sub>max</sub>=CLK/2
-* SCK at compile time settable
+* F<sub>SCK,max</sub>=F<sub>CLK,max</sub>/2
+* F<sub>SCK</sub> settable at compile
 
 
 ## Interface
