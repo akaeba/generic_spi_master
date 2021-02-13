@@ -10,7 +10,7 @@ An easy customizable multi chip select supporting _Serial Peripheral Interface_ 
 
 * SPI mode 0-3
 * arbitrary number of chip-selects (CSN)
-* F<sub>SCK,max</sub>=F<sub>CLK,max</sub>/2
+* F<sub>SCK,max</sub>=F<sub>CLK</sub>/2
 * F<sub>SCK</sub> settable at compile
 
 
@@ -52,6 +52,14 @@ _Generics are settable while compile time._
 <center><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/SPI_timing_diagram.svg/2000px-SPI_timing_diagram.svg.png" height="75%" width="75%" alt="Wikimedia timing diagram SPI modes" title="SPI modes timing diagram" /></center>
 
 
+## Architecture
+
+
+## Timing
+
+<center><img src="./doc/readme/spi_if_timing.svg" height="100%" width="100%" alt="SPI Master timing diagram for interface handling" title="Interface timing diagram" /></center>
+
+
 ## Resource allocation
 
 | Technology        | Logic | Registers | BRAM | Fmax   |
@@ -70,4 +78,4 @@ The waveform shows the [testbenchs](./tb/generic_spi_master_HC594_HC165_tb.vhd) 
 
 ## References
 
- * [Wikipedia: SPI](https://en.wikipedia.org/wiki/Serial_Peripheral_Interface)
+* [Wikipedia: SPI](https://en.wikipedia.org/wiki/Serial_Peripheral_Interface)
