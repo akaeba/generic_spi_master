@@ -81,7 +81,7 @@ generic (
             CLK_HZ      : positive              := 50_000_000;  --! clock frequency
             SCK_HZ      : positive              := 1_000_000;   --! Shift clock rate; minimal frequency - can be higher due numeric rounding effects
             RST_ACTIVE  : bit                   := '1';         --! Reset active level
-            MISO_SYNC   : natural               := 2;           --! number of MISO sync stages, 0: not implemented
+            MISO_SYNC   : natural range 0 to 3  := 0;           --! number of MISO sync stages, 0: not implemented
             MISO_FILT   : natural               := 0            --! number of bit length for hysteresis, 0: not implemented
         );
 port    (
@@ -99,8 +99,8 @@ port    (
             -- Management
             EN      : in    std_logic;                              --! if in idle master starts receive and transmission
             BSY     : out   std_logic;                              --! transmission is active
-            DO_WR   : out   std_logic_vector(NUM_CS-1 downto 0);    --! DO segment contents new data
-            DI_RD   : out   std_logic_vector(NUM_CS-1 downto 0)     --! DI segment transfered into MOSI shift forward register
+            DI_RD   : out   std_logic_vector(NUM_CS-1 downto 0);    --! DI segment transfered into MOSI shift forward register
+            DO_WR   : out   std_logic_vector(NUM_CS-1 downto 0)     --! DO segment contents new data
         );
 end entity generic_spi_master;
 --------------------------------------------------------------------------
