@@ -26,7 +26,7 @@ An easy customizable multi chip select supporting _Serial Peripheral Interface_ 
 | CLK_HZ     | positive | 50M     | clock frequency                                  |
 | SCK_HZ     | positive | 1M      | bit clock frequency                              |
 | RST_ACTIVE | bit      | 1       | logic level for active reset; 1: high-active     |
-| MISO_SYNC  | natural  | 2       | MISO data input synchronization flip-flop stages |
+| MISO_SYNC  | natural  | 0       | MISO data input synchronization flip-flop stages |
 | MISO_FILT  | natural  | 0       | MISO input filter stages, implements hysteresis  |
 
 _Generics are settable while compile time._
