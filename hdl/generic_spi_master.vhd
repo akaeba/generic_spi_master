@@ -140,7 +140,7 @@ architecture rtl of generic_spi_master is
                 SCK_CAP,        --! SFR captures input (MISO)
                 --SCK_CAP_WT,     --! clock divider wait state
                 CSN_END,        --! CSN at transmission start
-                CSN_END_WT,     --! wait for half clock
+                --CSN_END_WT,     --! wait for half clock
                 CSN_FRC,        --! ensures wait of half SCK period
                 CSN_FRC_WT      --! wait for half clock
             );
@@ -302,8 +302,8 @@ begin
                             '0'                                     when others;    --!
 
         with current_state select                               --! MOSI shift
-            mosi_shift  <=  sck_cntr_is_init    when SCK_CHG,   --! shift
-                            '1'                 when CSN_END,   --! sets line to zero
+            mosi_shift  <=  sck_cntr_is_init	when SCK_CHG,   --! shift
+                            sck_cntr_is_init    when CSN_END,   --! sets line to zero
                             '0'                 when others;    --! no shift
         --***************************
 
@@ -344,10 +344,10 @@ begin
 
         --***************************
         -- SFR Control
-        with current_state select                           --! External capturing
-            miso_load   <=  (not c_cpha)    when CSN_END,   --! capture, SPI mode 0/2
-                            c_cpha          when CSN_FRC,   --! capture, SPI mode 1/3
-                            '0'             when others;    --! no new data
+        with current_state select                           					--! External capturing
+            miso_load   <=  (not c_cpha) and sck_cntr_is_init	when CSN_END,   --! capture, SPI mode 0/2
+                            c_cpha          					when CSN_FRC,   --! capture, SPI mode 1/3
+                            '0'             					when others;    --! no new data
 
         with current_state select                               --! MOSI shift
             miso_shift  <=  sck_cntr_is_init    when SCK_CAP,   --! when SCK_CAP,   --! shift
@@ -407,7 +407,8 @@ begin
                                 --sck_cntr_is_zero    when SCK_CHG_WT,    --!
                                 sck_cntr_is_zero    when SCK_CAP,       --!
                                 --sck_cntr_is_zero    when SCK_CAP_WT,    --!
-                                sck_cntr_is_zero    when CSN_END_WT,    --!
+								sck_cntr_is_zero    when CSN_END,    	--!
+                                --sck_cntr_is_zero    when CSN_END_WT,    --!
                                 sck_cntr_is_zero    when CSN_FRC_WT,    --!
                                 '1'                 when others;        --! counter not needed, reload
 
@@ -417,7 +418,8 @@ begin
                                 --'1' when SCK_CHG_WT,    --!
                                 '1' when SCK_CAP,       --!
                                 --'1' when SCK_CAP_WT,    --!
-                                '1' when CSN_END_WT,    --!
+                                '1' when CSN_END,    	--!
+								--'1' when CSN_END_WT,    --!
                                 '1' when CSN_FRC_WT,    --!
                                 '0' when others;        --! no count
 
@@ -475,10 +477,10 @@ begin
                 cs_cntr_zero    <=  '1' when IDLE,      --! clear
                                     '0' when others;    --! hold
 
-            with current_state select                           --! enable
-                cs_cntr_en  <=  (not c_cpha)    when CSN_END,   --! next channel, SPI Mode 0/2
-                                c_cpha          when CSN_FRC,   --! next channel, SPI Mode 1/3
-                                '0'             when others;    --! hold
+            with current_state select                           					--! enable
+                cs_cntr_en  <=  (not c_cpha) and sck_cntr_is_init	when CSN_END,   --! next channel, SPI Mode 0/2
+                                c_cpha          					when CSN_FRC,   --! next channel, SPI Mode 1/3
+                                '0'             					when others;    --! hold
 
         end generate g_csn_cntr;
         --***************************
@@ -689,21 +691,27 @@ begin
             --***************************
             -- Wait for CSN half SCK cycle before deassert
             when CSN_END =>
-                if ( 1 < c_sck_div_2 ) then     --! clock division required
-                    next_state <= CSN_END_WT;
-                else
+                if ( '1' = sck_cntr_is_zero ) then
                     next_state <= CSN_FRC;
-                end if;
+                else
+                    next_state <= CSN_END;
+                end if;                
+
+				-- if ( 1 < c_sck_div_2 ) then     --! clock division required
+                    -- next_state <= CSN_END_WT;
+                -- else
+                    -- next_state <= CSN_FRC;
+                -- end if;
             --***************************
 
             --***************************
             -- CSN SCK division wait
-            when CSN_END_WT =>
-                if ( '1' = sck_cntr_is_zero ) then
-                    next_state <= CSN_FRC;
-                else
-                    next_state <= CSN_END_WT;
-                end if;
+            -- when CSN_END_WT =>
+                -- if ( '1' = sck_cntr_is_zero ) then
+                    -- next_state <= CSN_FRC;
+                -- else
+                    -- next_state <= CSN_END_WT;
+                -- end if;
             --***************************
 
             --***************************
