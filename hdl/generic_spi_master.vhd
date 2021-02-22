@@ -134,7 +134,7 @@ architecture rtl of generic_spi_master is
             (
                 IDLE,           --! Wait for transfer start
                 CSN_START,      --! CSN at transmission start
-                CSN_START_WT,   --! wait for half clock
+                --CSN_START_WT,   --! wait for half clock
                 SCK_CHG,        --! SFR output (MOSI) is changed
                 --SCK_CHG_WT,     --! Clock divider wait state
                 SCK_CAP,        --! SFR captures input (MISO)
@@ -404,7 +404,8 @@ begin
 
             -- control
             with current_state select                                   --! reload
-                sck_cntr_ld <=  sck_cntr_is_zero    when CSN_START_WT,  --! wait for target shift clock generation, and overflow
+                sck_cntr_ld <=  sck_cntr_is_zero    when CSN_START,     --! wait for target shift clock generation, and overflow
+                                --sck_cntr_is_zero    when CSN_START_WT,  --!
                                 sck_cntr_is_zero    when SCK_CHG,       --!
                                 --sck_cntr_is_zero    when SCK_CHG_WT,    --!
                                 sck_cntr_is_zero    when SCK_CAP,       --!
@@ -416,7 +417,8 @@ begin
                                 '1'                 when others;        --! counter not needed, reload
 
             with current_state select                   --! enable
-                sck_cntr_en <=  '1' when CSN_START_WT,  --! count to achieve target clock
+                sck_cntr_en <=  '1' when CSN_START,     --! count to achieve target clock
+                                --'1' when CSN_START_WT,  --!
                                 '1' when SCK_CHG,       --!
                                 --'1' when SCK_CHG_WT,    --!
                                 '1' when SCK_CAP,       --!
@@ -605,21 +607,27 @@ begin
             --***************************
             -- Chip select is asserted
             when CSN_START =>
-                if ( 1 < c_sck_div_2 ) then     --! clock division required
-                    next_state <= CSN_START_WT; --! wait for clock division
-                else                            --! runs with half main clock
-                    next_state <= SCK_CHG;      --! allows SCK = CLK/2 speed
+                if ( '1' = sck_cntr_is_zero ) then  --! wait done
+                    next_state <= SCK_CHG;
+                else                                --! clock division
+                    next_state <= CSN_START;
                 end if;
+
+                -- if ( 1 < c_sck_div_2 ) then     --! clock division required
+                    -- next_state <= CSN_START_WT; --! wait for clock division
+                -- else                            --! runs with half main clock
+                    -- next_state <= SCK_CHG;      --! allows SCK = CLK/2 speed
+                -- end if;
             --***************************
 
             --***************************
             -- Clock division
-            when CSN_START_WT =>
-                if ( '1' = sck_cntr_is_zero ) then
-                    next_state <= SCK_CHG;
-                else
-                    next_state <= CSN_START_WT;
-                end if;
+            -- when CSN_START_WT =>
+                -- if ( '1' = sck_cntr_is_zero ) then
+                    -- next_state <= SCK_CHG;
+                -- else
+                    -- next_state <= CSN_START_WT;
+                -- end if;
             --***************************
 
             --***************************
