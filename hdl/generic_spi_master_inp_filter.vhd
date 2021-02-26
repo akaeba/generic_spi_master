@@ -8,7 +8,7 @@
 -- @email:          andreas.kaeberlein@web.de
 --
 -- @note:           VHDL'93
--- @file:           generic_spi_master_sync_filt.vhd
+-- @file:           generic_spi_master_inp_filter.vhd
 -- @date:           2021-02-14
 --
 -- @see:            https://github.com/akaeba/generic_spi_master
@@ -34,11 +34,12 @@ library ieee;
 
 --------------------------------------------------------------------------
 -- Synchronizer and filter stage
-entity generic_spi_master_sync_filt is
+entity generic_spi_master_inp_filter is
 generic (
             SYNC_STAGES     : integer range 0 to 3  := 2;       --! synchronizer stages;                                                                        0: not implemented
             VOTER_STAGES    : natural range 0 to 11 := 3;       --! number of ff stages for voter; if all '1' out is '1', if all '0' out '0', otherwise hold;   0: not implemented
-            RST_ACTIVE      : bit                   := '1'      --! Reset active level
+            RST_STRBO		: bit					:= '0';		--! STRBO output in reset
+			RST_ACTIVE      : bit                   := '1'      --! Reset active level
         );
 port    (
             -- Management
@@ -51,13 +52,13 @@ port    (
             STRBI   : in    std_logic;      --! data strobe input
             STRBO   : out   std_logic       --! data strobe output, not filtered only delayed like filter delay
         );
-end entity generic_spi_master_sync_filt;
+end entity generic_spi_master_inp_filter;
 --------------------------------------------------------------------------
 
 
 
 --------------------------------------------------------------------------
-architecture rtl of generic_spi_master_sync_filt is
+architecture rtl of generic_spi_master_inp_filter is
 
     ----------------------------------------------
     -- Constants
@@ -90,7 +91,7 @@ begin
             p_sync_ff : process( RST, CLK )
             begin
                 if ( RST = to_stdulogic(RST_ACTIVE) ) then
-                    sync_ffs <= (others => '0');
+                    sync_ffs <= (others => to_stdulogic(RST_STRBO));
                 elsif ( rising_edge(CLK) ) then
                     if ( '1' = EN ) then
                         sync_ffs <= sync_ffs(sync_ffs'left-1 downto sync_ffs'right) & FILTI;
@@ -123,7 +124,7 @@ begin
             p_voter_ff : process( RST, CLK )
             begin
                 if ( RST = to_stdulogic(RST_ACTIVE) ) then
-                    voter_ffs <= (others => '0');
+                    voter_ffs <= (others => to_stdulogic(RST_STRBO));
                 elsif ( rising_edge(CLK) ) then
                     if ( '1' = EN ) then
                         voter_ffs <= voter_ffs(voter_ffs'left-1 downto voter_ffs'right) & synced;
@@ -137,13 +138,13 @@ begin
             p_rsff : process( RST, CLK )
             begin
                 if ( RST = to_stdulogic(RST_ACTIVE) ) then
-                    STRBO <= '0';
+                    FILTO <= to_stdulogic(RST_STRBO);
                 elsif ( rising_edge(CLK) ) then
                     if ( '1' = EN ) then
                         if ( ('1' = rsff_set) and ('0' = rsff_reset) ) then
-                            STRBO <= '1';
+                            FILTO <= '1';
                         elsif ( ('0' = rsff_set) and ('1' = rsff_reset) ) then
-                            STRBO <= '0';
+                            FILTO <= '0';
                         end if;
                     end if;
                 end if;
