@@ -172,8 +172,8 @@ architecture rtl of generic_spi_master is
         signal mosi_load        : std_logic;                            --! load parallel data
         signal mosi_shift       : std_logic;                            --! shift on next clock rise edge
         signal miso_sfr         : std_logic_vector(DW_SFR-1 downto 0);  --! MISO shift register
-        signal miso_load        : std_logic;                            --! SFR data available
         signal miso_shift       : std_logic;                            --! shift on next clock rise edge
+        signal miso_shift_dly1  : std_logic;                            --! one clock cycle delayed mosi shift
         -- Miscellaneous
         signal csn_ff           : std_logic_vector(CSN'range);  --! CSN registered out
         signal csn_ff_ld        : std_logic;
@@ -330,22 +330,21 @@ begin
         p_miso_sfr : process( RST, CLK )
         begin
             if ( to_stdulogic(RST_ACTIVE) = RST ) then
-                miso_sfr <= (others => '0');
+                miso_sfr        <= (others => '0');
+                miso_shift_dly1 <= '0';
             elsif ( rising_edge(CLK) ) then
+                -- SFR
                 if ( '1' = miso_shift ) then    --! TODO, major vote MISO
                     miso_sfr <= miso_sfr(miso_sfr'left-1 downto miso_sfr'right) & MISO; --! shift one bit to left
                 end if;
+                -- DFF
+                miso_shift_dly1 <= miso_shift;
             end if;
         end process p_MISO_sfr;
         --***************************
 
         --***************************
         -- SFR Control
-        with current_state select                                               --! External capturing
-            miso_load   <=  (not c_cpha) and sck_cntr_is_init   when CSN_END,   --! capture, SPI mode 0/2
-                            c_cpha and sck_cntr_is_init         when CSN_FRC,   --! capture, SPI mode 1/3
-                            '0'                                 when others;    --! no new data
-
         with current_state select                               --! MOSI shift
             miso_shift  <=  sck_cntr_is_init    when SCK_CAP,   --! when SCK_CAP,   --! shift
                             '0'                 when others;    --! no shift
@@ -353,10 +352,10 @@ begin
 
         --***************************
         -- Output Capturing
-        p_do_sel : process( miso_load, cs_cntr_cnt )
+        p_do_sel : process( miso_shift_dly1, cs_cntr_cnt, bit_cntr_is_zero )
         begin
             DO_WR                                   <= (others => '0');
-            DO_WR(to_integer(to_01(cs_cntr_cnt)))   <= miso_load;
+            DO_WR(to_integer(to_01(cs_cntr_cnt)))   <= miso_shift_dly1 and bit_cntr_is_zero;    --! SFR data complete received
         end process p_do_sel;
         --***************************
 
