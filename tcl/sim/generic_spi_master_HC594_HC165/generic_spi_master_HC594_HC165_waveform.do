@@ -14,9 +14,9 @@ add wave -noupdate /generic_spi_master_hc594_hc165_tb/MISO
 add wave -noupdate -divider {SPI Master}
 add wave -noupdate /generic_spi_master_hc594_hc165_tb/EN
 add wave -noupdate /generic_spi_master_hc594_hc165_tb/BSY
-add wave -noupdate /generic_spi_master_hc594_hc165_tb/DI_RD
+add wave -noupdate /generic_spi_master_hc594_hc165_tb/DI_RD(0)
 add wave -noupdate -radix hexadecimal -childformat {{/generic_spi_master_hc594_hc165_tb/DI(7) -radix hexadecimal} {/generic_spi_master_hc594_hc165_tb/DI(6) -radix hexadecimal} {/generic_spi_master_hc594_hc165_tb/DI(5) -radix hexadecimal} {/generic_spi_master_hc594_hc165_tb/DI(4) -radix hexadecimal} {/generic_spi_master_hc594_hc165_tb/DI(3) -radix hexadecimal} {/generic_spi_master_hc594_hc165_tb/DI(2) -radix hexadecimal} {/generic_spi_master_hc594_hc165_tb/DI(1) -radix hexadecimal} {/generic_spi_master_hc594_hc165_tb/DI(0) -radix hexadecimal}} -subitemconfig {/generic_spi_master_hc594_hc165_tb/DI(7) {-height 18 -radix hexadecimal} /generic_spi_master_hc594_hc165_tb/DI(6) {-height 18 -radix hexadecimal} /generic_spi_master_hc594_hc165_tb/DI(5) {-height 18 -radix hexadecimal} /generic_spi_master_hc594_hc165_tb/DI(4) {-height 18 -radix hexadecimal} /generic_spi_master_hc594_hc165_tb/DI(3) {-height 18 -radix hexadecimal} /generic_spi_master_hc594_hc165_tb/DI(2) {-height 18 -radix hexadecimal} /generic_spi_master_hc594_hc165_tb/DI(1) {-height 18 -radix hexadecimal} /generic_spi_master_hc594_hc165_tb/DI(0) {-height 18 -radix hexadecimal}} /generic_spi_master_hc594_hc165_tb/DI
-add wave -noupdate /generic_spi_master_hc594_hc165_tb/DO_WR
+add wave -noupdate /generic_spi_master_hc594_hc165_tb/DO_WR(0)
 add wave -noupdate -radix hexadecimal /generic_spi_master_hc594_hc165_tb/DO
 add wave -noupdate /generic_spi_master_hc594_hc165_tb/DUT/current_state
 add wave -noupdate /generic_spi_master_hc594_hc165_tb/DUT/next_state
@@ -36,8 +36,8 @@ add wave -noupdate /generic_spi_master_hc594_hc165_tb/i_HC165/QH
 add wave -noupdate /generic_spi_master_hc594_hc165_tb/i_HC165/XQH
 add wave -noupdate -radix hexadecimal /generic_spi_master_hc594_hc165_tb/i_HC165/H_A
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 3} {210000 ps} 0} {{Cursor 3} {550000 ps} 0}
-quietly wave cursor active 2
+WaveRestoreCursors {{Cursor 3} {210000 ps} 0}
+quietly wave cursor active 1
 configure wave -namecolwidth 404
 configure wave -valuecolwidth 100
 configure wave -justifyvalue left
@@ -52,4 +52,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {165722 ps} {583942 ps}
+WaveRestoreZoom {0 ps} {9450 ns}
