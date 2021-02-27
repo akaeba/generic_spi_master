@@ -162,8 +162,7 @@ architecture rtl of generic_spi_master is
         signal cs_cntr_cnt      : unsigned(c_cs_cntr_width-1 downto 0);     --! CS channel selection counter
         signal cs_cntr_zero     : std_logic;                                --! make counter to zero
         signal cs_cntr_en       : std_logic;                                --! enable increment
-        signal cs_cntr_is_min   : std_logic;                                --! has minimal value, zero
-        signal cs_cntr_is_max   : std_logic;                                --! has maximal value, NUM_CS-1
+        signal cs_cntr_is_zero  : std_logic;                                --! has minimal value, zero
         -- SFR
         signal sck_tff          : std_logic;                            --! toggle flip-flop for SCK clock generation
         signal sck_tff_ld       : std_logic;                            --! preload register
@@ -467,14 +466,12 @@ begin
                 cs_cntr_zero    <=  '1' when IDLE,      --! clear
                                     '0' when others;    --! hold
 
-            with current_state select                                               --! enable
-                cs_cntr_en  <=  (not c_cpha) and sck_cntr_is_init   when CSN_END,   --! next channel, SPI Mode 0/2
-                                c_cpha and sck_cntr_is_init         when CSN_FRC,   --! next channel, SPI Mode 1/3
-                                '0'                                 when others;    --! hold
+            with current_state select                                                   --! enable
+                cs_cntr_en  <=  sck_cntr_is_zero and bit_cntr_is_zero   when SCK_CAP,   --! next channel
+                                '0'                                     when others;    --! hold
 
             -- flags
-            cs_cntr_is_min  <= '1' when ( 0 = to_01(cs_cntr_cnt) ) else '0';
-            cs_cntr_is_max  <= '1' when ( to_unsigned(NUM_CS-1, cs_cntr_cnt'length) = to_01(cs_cntr_cnt) ) else '0';
+            cs_cntr_is_zero <= '1' when ( 0 = to_01(cs_cntr_cnt) ) else '0';
 
         end generate g_csn_cntr;
         --***************************
@@ -565,7 +562,7 @@ begin
                                 EN,                 --! module inputs, enables transceiver
                                 sck_cntr_is_zero,   --! sck counter expired
                                 bit_cntr_is_zero,   --! count shifted times
-                                cs_cntr_cnt         --! selects active CS channel
+                                cs_cntr_is_zero     --! cs counter expired
                             )
     begin
         -- default assignment
@@ -639,87 +636,27 @@ begin
             --***************************
             -- Limits CSN disable/enable to half SCK
             when CSN_FRC =>
-                if ( '1' = sck_cntr_is_zero ) then  --! go on
-                    if ( '0' = c_cpha ) then                --! SPI Mode 0/2
-                        if ( 0 = cs_cntr_cnt ) then         --! all CSN channels served
-                            if ( '1' = EN ) then            --! continuous run
-                                next_state <= SCK_CHG;      --! next frame
+                if ( '1' = sck_cntr_is_zero ) then          --! go on
+                    if ( '1' = cs_cntr_is_zero ) then       --! all CSN channels served
+                        if ( '1' = EN ) then                --! continuous run
+                            if ( '0' = c_cpha ) then
+                                next_state <= SCK_CHG;      --! next CS, SPI 0/2
                             else
-                                next_state <= IDLE;         --! all channels served
+                                next_state <= CSN_START;    --! next CS, SPI 1/3
                             end if;
                         else
-                            next_state <= SCK_CHG;          --! CSN channels pending
+                            next_state <= IDLE;             --! all channels served
                         end if;
-                    else                                    --! SPI Mode 1/3
-                        if ( NUM_CS-1 = cs_cntr_cnt ) then  --! all CSN channels served
-                            if ( '1' = EN ) then            --! continuous run
-                                next_state <= CSN_START;    --! next CS selected channel
-                            else
-                                next_state <= IDLE;         --! all channels served
-                            end if;
-                        else                                --! CSN channels pending
-                            next_state <= CSN_START;        --! next CS selected channel
+                    else
+                        if ( '0' = c_cpha ) then
+                            next_state <= SCK_CHG;          --! next CS, SPI 0/2
+                        else
+                            next_state <= CSN_START;        --! next CS, SPI 1/3
                         end if;
                     end if;
                 else                                        --! clock division
                     next_state <= CSN_FRC;
                 end if;
-
-                -- if ( 1 < c_sck_div_2 ) then                 --! clock division required
-                    -- next_state <= CSN_FRC_WT;
-                -- else                                        --! SCK = CLK/2 speed
-                    -- if ( '0' = c_cpha ) then                --! SPI Mode 0/2
-                        -- if ( 0 = cs_cntr_cnt ) then         --! all CSN channels served
-                            -- if ( '1' = EN ) then            --! continuous run
-                                -- next_state <= SCK_CHG;      --! next frame
-                            -- else
-                                -- next_state <= IDLE;         --! all channels served
-                            -- end if;
-                        -- else
-                            -- next_state <= SCK_CHG;          --! CSN channels pending
-                        -- end if;
-                    -- else                                    --! SPI Mode 1/3
-                        -- if ( NUM_CS-1 = cs_cntr_cnt ) then  --! all CSN channels served
-                            -- if ( '1' = EN ) then            --! continuous run
-                                -- next_state <= CSN_START;    --! next CS selected channel
-                            -- else
-                                -- next_state <= IDLE;         --! all channels served
-                            -- end if;
-                        -- else                                --! CSN channels pending
-                            -- next_state <= CSN_START;        --! next CS selected channel
-                        -- end if;
-                    -- end if;
-                -- end if;
-            --***************************
-
-            --***************************
-            -- CSN SCK division wait
-            -- when CSN_FRC_WT =>
-                -- if ( '1' = sck_cntr_is_zero ) then
-                    -- if ( '0' = c_cpha ) then                --! SPI Mode 0/2
-                        -- if ( 0 = cs_cntr_cnt ) then         --! all CSN channels served
-                            -- if ( '1' = EN ) then            --! continuous run
-                                -- next_state <= SCK_CHG;      --! next frame
-                            -- else
-                                -- next_state <= IDLE;         --! all channels served
-                            -- end if;
-                        -- else
-                            -- next_state <= SCK_CHG;          --! CSN channels pending
-                        -- end if;
-                    -- else                                    --! SPI Mode 1/3
-                        -- if ( 0 = cs_cntr_cnt ) then         --! all CSN channels served, in case of CSN_FRC_WT, cs_cntr is increment/overflows in CSN_FRC, therefore check here for zero
-                            -- if ( '1' = EN ) then            --! continuous run
-                                -- next_state <= CSN_START;    --! next CS selected channel
-                            -- else
-                                -- next_state <= IDLE;         --! all channels served
-                            -- end if;
-                        -- else                                --! CSN channels pending
-                            -- next_state <= CSN_START;        --! next CS selected channel
-                        -- end if;
-                    -- end if;
-                -- else
-                    -- next_state <= CSN_FRC_WT;
-                -- end if;
             --***************************
 
             --***************************
