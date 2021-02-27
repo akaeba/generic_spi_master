@@ -3,7 +3,6 @@ quietly WaveActivateNextPane {} 0
 add wave -noupdate -divider Misc
 add wave -noupdate /generic_spi_master_inp_filter_tb/RST
 add wave -noupdate /generic_spi_master_inp_filter_tb/CLK
-add wave -noupdate /generic_spi_master_inp_filter_tb/EN
 add wave -noupdate -divider Filter
 add wave -noupdate /generic_spi_master_inp_filter_tb/FILTI
 add wave -noupdate /generic_spi_master_inp_filter_tb/FILTO
@@ -15,7 +14,7 @@ add wave -noupdate /generic_spi_master_inp_filter_tb/DUT/voter_ffs
 add wave -noupdate /generic_spi_master_inp_filter_tb/DUT/rsff_set
 add wave -noupdate /generic_spi_master_inp_filter_tb/DUT/rsff_reset
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 2} {9210000 ps} 0}
+WaveRestoreCursors {{Cursor 2} {1703366 ps} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 361
 configure wave -valuecolwidth 100
@@ -31,4 +30,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {0 ps} {21 us}
+WaveRestoreZoom {0 ps} {2625 ns}

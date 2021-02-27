@@ -24,4 +24,4 @@ vsim -novopt -gDO_ALL_TEST=true -t 1ps work.generic_spi_master_inp_filter_tb
 do "../tcl/sim/generic_spi_master_inp_filter/generic_spi_master_inp_filter_waveform.do"
 
 # sim until finish
-#run 3.5 ms
+run 2.5 us
