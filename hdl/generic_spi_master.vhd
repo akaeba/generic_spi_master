@@ -470,9 +470,6 @@ begin
                 cs_cntr_en  <=  sck_cntr_is_zero and bit_cntr_is_zero   when SCK_CAP,   --! next channel
                                 '0'                                     when others;    --! hold
 
-            -- flags
-            cs_cntr_is_zero <= '1' when ( 0 = to_01(cs_cntr_cnt) ) else '0';
-
         end generate g_csn_cntr;
         --***************************
 
@@ -482,6 +479,11 @@ begin
         g_skip_csn_cntr : if NUM_CS <= 1 generate
             cs_cntr_cnt <= (others => '0');
         end generate g_skip_csn_cntr;
+        --***************************
+
+        --***************************
+        -- flags
+        cs_cntr_is_zero <= '1' when ( 0 = to_01(cs_cntr_cnt) ) else '0';
         --***************************
 
     ----------------------------------------------
