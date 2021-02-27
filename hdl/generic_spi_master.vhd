@@ -371,9 +371,9 @@ begin
     ----------------------------------------------
 
         --***************************
-        -- c_sck_div_2 > 2 -> go in wait state, and count divider down
+        -- c_sck_div_2 > 1 -> go in wait state, and count divider down
         --
-        g_sck_cntr : if c_sck_div_2 > 2 generate
+        g_sck_cntr : if c_sck_div_2 > 1 generate
             -- registered counter
             p_sck_cntr : process( RST, CLK )
             begin
@@ -417,9 +417,8 @@ begin
 
         --***************************
         -- c_sck_div_2 = 1 -> SCK toggles at every CLK rising edge, no wait state required
-        -- c_sck_div_2 = 2 -> go in wait state, but no counter needed cause divider is by wait state itself realized
         --
-        g_skip_sck_cntr : if c_sck_div_2 <= 2 generate
+        g_skip_sck_cntr : if c_sck_div_2 <= 1 generate
             sck_cntr_cnt <= (others => '0');
         end generate g_skip_sck_cntr;
         --***************************
