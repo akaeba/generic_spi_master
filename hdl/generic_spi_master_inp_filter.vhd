@@ -38,14 +38,13 @@ entity generic_spi_master_inp_filter is
 generic (
             SYNC_STAGES     : integer range 0 to 3  := 2;       --! synchronizer stages;                                                                        0: not implemented
             VOTER_STAGES    : natural range 0 to 11 := 3;       --! number of ff stages for voter; if all '1' out is '1', if all '0' out '0', otherwise hold;   0: not implemented
-            RST_STRBO		: bit					:= '0';		--! STRBO output in reset
-			RST_ACTIVE      : bit                   := '1'      --! Reset active level
+            RST_STRBO       : bit                   := '0';     --! STRBO output in reset
+            RST_ACTIVE      : bit                   := '1'      --! Reset active level
         );
 port    (
             -- Management
             RST     : in    std_logic;      --! asynchronous reset
             CLK     : in    std_logic;      --! clock, rising edge
-            EN      : in    std_logic;      --! if in idle master starts receive and transmission
             -- Data
             FILTI   : in    std_logic;      --! filter input
             FILTO   : out   std_logic;      --! filter output
@@ -93,9 +92,7 @@ begin
                 if ( RST = to_stdulogic(RST_ACTIVE) ) then
                     sync_ffs <= (others => to_stdulogic(RST_STRBO));
                 elsif ( rising_edge(CLK) ) then
-                    if ( '1' = EN ) then
-                        sync_ffs <= sync_ffs(sync_ffs'left-1 downto sync_ffs'right) & FILTI;
-                    end if;
+                    sync_ffs <= sync_ffs(sync_ffs'left-1 downto sync_ffs'right) & FILTI;
                 end if;
             end process p_sync_ff;
             -- output
@@ -126,9 +123,7 @@ begin
                 if ( RST = to_stdulogic(RST_ACTIVE) ) then
                     voter_ffs <= (others => to_stdulogic(RST_STRBO));
                 elsif ( rising_edge(CLK) ) then
-                    if ( '1' = EN ) then
-                        voter_ffs <= voter_ffs(voter_ffs'left-1 downto voter_ffs'right) & synced;
-                    end if;
+                    voter_ffs <= voter_ffs(voter_ffs'left-1 downto voter_ffs'right) & synced;
                 end if;
             end process p_voter_ff;
             -- voter output
@@ -140,12 +135,10 @@ begin
                 if ( RST = to_stdulogic(RST_ACTIVE) ) then
                     FILTO <= to_stdulogic(RST_STRBO);
                 elsif ( rising_edge(CLK) ) then
-                    if ( '1' = EN ) then
-                        if ( ('1' = rsff_set) and ('0' = rsff_reset) ) then
-                            FILTO <= '1';
-                        elsif ( ('0' = rsff_set) and ('1' = rsff_reset) ) then
-                            FILTO <= '0';
-                        end if;
+                    if ( ('1' = rsff_set) and ('0' = rsff_reset) ) then
+                        FILTO <= '1';
+                    elsif ( ('0' = rsff_set) and ('1' = rsff_reset) ) then
+                        FILTO <= '0';
                     end if;
                 end if;
             end process p_rsff;
@@ -175,9 +168,7 @@ begin
                 if ( RST = to_stdulogic(RST_ACTIVE) ) then
                     strobe_ffs <= (others => '0');
                 elsif ( rising_edge(CLK) ) then
-                    if ( '1' = EN ) then
-                        strobe_ffs <= strobe_ffs(strobe_ffs'left-1 downto strobe_ffs'right) & STRBI;
-                    end if;
+                    strobe_ffs <= strobe_ffs(strobe_ffs'left-1 downto strobe_ffs'right) & STRBI;
                 end if;
             end process p_strobe_ff;
             -- output
