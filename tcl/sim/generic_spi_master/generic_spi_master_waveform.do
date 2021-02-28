@@ -36,8 +36,9 @@ add wave -noupdate /generic_spi_master_tb/DUT/bit_cntr_en
 add wave -noupdate /generic_spi_master_tb/DUT/bit_cntr_is_zero
 add wave -noupdate /generic_spi_master_tb/DUT/bit_cntr_is_init
 add wave -noupdate -radix unsigned -childformat {{/generic_spi_master_tb/DUT/cs_cntr_cnt(1) -radix unsigned} {/generic_spi_master_tb/DUT/cs_cntr_cnt(0) -radix unsigned}} -subitemconfig {/generic_spi_master_tb/DUT/cs_cntr_cnt(1) {-height 18 -radix unsigned} /generic_spi_master_tb/DUT/cs_cntr_cnt(0) {-height 18 -radix unsigned}} /generic_spi_master_tb/DUT/cs_cntr_cnt
-add wave -noupdate /generic_spi_master_tb/DUT/cs_cntr_zero
+add wave -noupdate /generic_spi_master_tb/DUT/cs_cntr_is_zero
 add wave -noupdate /generic_spi_master_tb/DUT/cs_cntr_en
+add wave -noupdate /generic_spi_master_tb/DUT/cs_cntr_zero
 add wave -noupdate -divider SFR
 add wave -noupdate -radix hexadecimal -childformat {{/generic_spi_master_tb/DUT/mosi_sfr(7) -radix hexadecimal} {/generic_spi_master_tb/DUT/mosi_sfr(6) -radix hexadecimal} {/generic_spi_master_tb/DUT/mosi_sfr(5) -radix hexadecimal} {/generic_spi_master_tb/DUT/mosi_sfr(4) -radix hexadecimal} {/generic_spi_master_tb/DUT/mosi_sfr(3) -radix hexadecimal} {/generic_spi_master_tb/DUT/mosi_sfr(2) -radix hexadecimal} {/generic_spi_master_tb/DUT/mosi_sfr(1) -radix hexadecimal} {/generic_spi_master_tb/DUT/mosi_sfr(0) -radix hexadecimal}} -subitemconfig {/generic_spi_master_tb/DUT/mosi_sfr(7) {-height 18 -radix hexadecimal} /generic_spi_master_tb/DUT/mosi_sfr(6) {-height 18 -radix hexadecimal} /generic_spi_master_tb/DUT/mosi_sfr(5) {-height 18 -radix hexadecimal} /generic_spi_master_tb/DUT/mosi_sfr(4) {-height 18 -radix hexadecimal} /generic_spi_master_tb/DUT/mosi_sfr(3) {-height 18 -radix hexadecimal} /generic_spi_master_tb/DUT/mosi_sfr(2) {-height 18 -radix hexadecimal} /generic_spi_master_tb/DUT/mosi_sfr(1) {-height 18 -radix hexadecimal} /generic_spi_master_tb/DUT/mosi_sfr(0) {-height 18 -radix hexadecimal}} /generic_spi_master_tb/DUT/mosi_sfr
 add wave -noupdate /generic_spi_master_tb/DUT/mosi_load
@@ -45,7 +46,7 @@ add wave -noupdate /generic_spi_master_tb/DUT/mosi_shift
 add wave -noupdate -radix hexadecimal /generic_spi_master_tb/DUT/miso_sfr
 add wave -noupdate /generic_spi_master_tb/DUT/miso_shift
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 2} {710000 ps} 0}
+WaveRestoreCursors {{Cursor 2} {8210000 ps} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 361
 configure wave -valuecolwidth 100
@@ -61,4 +62,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {0 ps} {1568998 ps}
+WaveRestoreZoom {0 ps} {23336640 ps}
