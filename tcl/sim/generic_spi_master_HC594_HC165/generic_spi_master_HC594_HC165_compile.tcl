@@ -27,6 +27,7 @@ set proj_dir "../"
 # Compile Design
 #
 vcom -93 ${proj_dir}/hdl/generic_spi_master.vhd
+vcom -93 ${proj_dir}/hdl/generic_spi_master_inp_filter.vhd
 #
 
 

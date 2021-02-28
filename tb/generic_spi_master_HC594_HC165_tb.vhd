@@ -45,14 +45,14 @@ architecture sim of generic_spi_master_HC594_HC165_tb is
     -----------------------------
     -- Constant
         -- DUT
-        constant SPI_MODE   : integer range 0 to 3  := 2;
-        constant NUM_CS     : integer               := 1;
-        constant DW_SFR     : integer               := 8;
-        constant CLK_HZ     : positive              := 50_000_000;
-        constant SCK_HZ     : positive              := 25_000_000;
-        constant RST_ACTIVE : bit                   := '0';
-        constant MISO_SYNC  : natural               := 0;
-        constant MISO_FILT  : natural               := 0;
+        constant SPI_MODE       : integer range 0 to 3  := 2;
+        constant NUM_CS         : integer               := 1;
+        constant DW_SFR         : integer               := 8;
+        constant CLK_HZ         : positive              := 50_000_000;
+        constant SCK_HZ         : positive              := 25_000_000;
+        constant RST_ACTIVE     : bit                   := '0';
+        constant MISO_SYNC_STG  : natural               := 0;
+        constant MISO_FILT_STG  : natural               := 0;
         -- Clock
         constant tclk   : time  := 1 sec / CLK_HZ;  --! period of source clock
         constant tskew  : time  := tclk / 50;       --! data skew
@@ -91,14 +91,14 @@ begin
     -- DUT
     DUT : entity work.generic_spi_master
         generic map (
-                        SPI_MODE    => SPI_MODE,    --! SPI transfer Mode
-                        NUM_CS      => NUM_CS,      --! Number of Channels (chip-selects)
-                        DW_SFR      => DW_SFR,      --! data width shift register
-                        CLK_HZ      => CLK_HZ,      --! clock frequency
-                        SCK_HZ      => SCK_HZ,      --! Shift clock rate; minimal frequency - can be higher due numeric rounding effects
-                        RST_ACTIVE  => RST_ACTIVE,  --! Reset active level
-                        MISO_SYNC   => MISO_SYNC,   --! number of MISO sync stages, 0: not implemented
-                        MISO_FILT   => MISO_FILT    --! number of bit length for hysteresis, 0: not implemented
+                        SPI_MODE        => SPI_MODE,        --! SPI transfer Mode
+                        NUM_CS          => NUM_CS,          --! Number of Channels (chip-selects)
+                        DW_SFR          => DW_SFR,          --! data width shift register
+                        CLK_HZ          => CLK_HZ,          --! clock frequency
+                        SCK_HZ          => SCK_HZ,          --! Shift clock rate; minimal frequency - can be higher due numeric rounding effects
+                        RST_ACTIVE      => RST_ACTIVE,      --! Reset active level
+                        MISO_SYNC_STG   => MISO_SYNC_STG,   --! number of MISO sync stages, 0: not implemented
+                        MISO_FILT_STG   => MISO_FILT_STG    --! number of bit length for hysteresis, 0: not implemented
                     )
         port map    (
                         RST   => XRST,  --! asynchronous reset
