@@ -36,7 +36,7 @@ library ieee;
     use ieee.numeric_std.all;
     use ieee.std_logic_misc.and_reduce;
     use ieee.std_logic_misc.nor_reduce;
-    use ieee.math_real.ceil;
+    use ieee.math_real.floor;
 --------------------------------------------------------------------------
 
 
@@ -71,7 +71,7 @@ architecture rtl of generic_spi_master_inp_filter is
     ----------------------------------------------
     -- Constants
     ----------------------------------------------
-        constant c_strobe_dly : integer := SYNC_STAGES + integer(ceil(real(VOTER_STAGES)-1.0)/2.0);
+        constant c_strobe_dly : integer := SYNC_STAGES + integer(floor(real(VOTER_STAGES))/2.0);
     ----------------------------------------------
 
 

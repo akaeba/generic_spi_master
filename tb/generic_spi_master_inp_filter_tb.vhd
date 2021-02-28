@@ -228,10 +228,11 @@ begin
             wait until rising_edge(CLK); wait for tskew;
             wait until rising_edge(CLK); wait for tskew;
             wait until rising_edge(CLK); wait for tskew;
-            assert ( '1' = STRBO ) report "  strobe failed" severity warning;
+            wait until rising_edge(CLK); wait for tskew;
+            assert ( '1' = STRBO ) report "  strobe failed, need 1" severity warning;
             if not ( '1' = STRBO  ) then good := false; end if;
             wait until rising_edge(CLK); wait for tskew;
-            assert ( '0' = STRBO ) report "  strobe failed" severity warning;
+            assert ( '0' = STRBO ) report "  strobe failed, need 0" severity warning;
             if not ( '0' = STRBO  ) then good := false; end if;
             wait for 10*tclk;
         end if;
