@@ -75,14 +75,14 @@ library IEEE;
 -- Generic SPI Master
 entity generic_spi_master is
 generic (
-            SPI_MODE    : integer range 0 to 3  := 0;           --! SPI transfer Mode
-            NUM_CS      : positive              := 1;           --! Number of Channels (chip-selects)
-            DW_SFR      : integer               := 8;           --! data width shift register
-            CLK_HZ      : positive              := 50_000_000;  --! clock frequency
-            SCK_HZ      : positive              := 1_000_000;   --! Shift clock rate; minimal frequency - can be higher due numeric rounding effects
-            RST_ACTIVE  : bit                   := '1';         --! Reset active level
-            MISO_SYNC   : natural range 0 to 3  := 0;           --! number of MISO sync stages, 0: not implemented
-            MISO_FILT   : natural               := 0            --! number of bit length for hysteresis, 0: not implemented
+            SPI_MODE        : integer range 0 to 3  := 0;           --! SPI transfer Mode
+            NUM_CS          : positive              := 1;           --! Number of Channels (chip-selects)
+            DW_SFR          : integer               := 8;           --! data width shift register
+            CLK_HZ          : positive              := 50_000_000;  --! clock frequency
+            SCK_HZ          : positive              := 1_000_000;   --! Shift clock rate; minimal frequency - can be higher due numeric rounding effects
+            RST_ACTIVE      : bit                   := '1';         --! Reset active level
+            MISO_SYNC_STG   : natural range 0 to 3  := 0;           --! number of MISO sync stages, 0: not implemented
+            MISO_FILT_STG   : natural               := 0            --! number of bit length for hysteresis, 0: not implemented
         );
 port    (
             -- Clock/Reset
@@ -170,8 +170,10 @@ architecture rtl of generic_spi_master is
         signal mosi_sfr         : std_logic_vector(DW_SFR-1 downto 0);  --! MOSI shift register
         signal mosi_load        : std_logic;                            --! load parallel data
         signal mosi_shift       : std_logic;                            --! shift on next clock rise edge
+        signal miso_filt        : std_logic;                            --! filtered MISO data input
         signal miso_sfr         : std_logic_vector(DW_SFR-1 downto 0);  --! MISO shift register
         signal miso_shift       : std_logic;                            --! shift on next clock rise edge
+        signal miso_shift_filt  : std_logic;                            --! shift delayed with filter delay
         signal miso_shift_dly1  : std_logic;                            --! one clock cycle delayed mosi shift
         -- Miscellaneous
         signal csn_ff           : std_logic_vector(CSN'range);  --! CSN registered out
@@ -325,6 +327,26 @@ begin
     ----------------------------------------------
 
         --***************************
+        -- MISO input filtering
+        i_generic_spi_master_inp_filter : entity work.generic_spi_master_inp_filter
+            generic map (
+                            SYNC_STAGES  => MISO_SYNC_STG,  --! synchronizer stages;                                                                        0: not implemented
+                            VOTER_STAGES => MISO_FILT_STG,  --! number of ff stages for voter; if all '1' out is '1', if all '0' out '0', otherwise hold;   0: not implemented
+                            RST_STRBO    => '0',            --! STRBO output in reset
+                            RST_ACTIVE   => RST_ACTIVE      --! Reset active level
+                        )
+            port map    (
+                            RST   => RST,               --! asynchronous reset
+                            CLK   => CLK,               --! clock, rising edge
+                            FILTI => MISO,              --! filter input
+                            FILTO => miso_filt,         --! filter output
+                            STRBI => miso_shift_filt,   --! data strobe input
+                            STRBO => miso_shift         --! data strobe output, not filtered only delayed like filter delay, strobe is center aligned to filter chain
+                        );
+        --***************************
+
+
+        --***************************
         -- SFR
         p_miso_sfr : process( RST, CLK )
         begin
@@ -333,8 +355,8 @@ begin
                 miso_shift_dly1 <= '0';
             elsif ( rising_edge(CLK) ) then
                 -- SFR
-                if ( '1' = miso_shift ) then    --! TODO, major vote MISO
-                    miso_sfr <= miso_sfr(miso_sfr'left-1 downto miso_sfr'right) & MISO; --! shift one bit to left
+                if ( '1' = miso_shift ) then
+                    miso_sfr <= miso_sfr(miso_sfr'left-1 downto miso_sfr'right) & miso_filt; --! shift one bit to left
                 end if;
                 -- DFF
                 miso_shift_dly1 <= miso_shift;
@@ -344,9 +366,9 @@ begin
 
         --***************************
         -- SFR Control
-        with current_state select                               --! MOSI shift
-            miso_shift  <=  sck_cntr_is_init    when SCK_CAP,   --! when SCK_CAP,   --! shift
-                            '0'                 when others;    --! no shift
+        with current_state select                                   --! MOSI shift
+            miso_shift_filt <=  sck_cntr_is_init    when SCK_CAP,   --! when SCK_CAP,   --! shift
+                                '0'                 when others;    --! no shift
         --***************************
 
         --***************************

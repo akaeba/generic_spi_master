@@ -21,6 +21,15 @@
 
 
 
+--
+-- Hints:
+-- ======
+--
+--
+
+
+
+
 --------------------------------------------------------------------------
 library ieee;
     use ieee.std_logic_1164.all;
@@ -49,7 +58,7 @@ port    (
             FILTI   : in    std_logic;      --! filter input
             FILTO   : out   std_logic;      --! filter output
             STRBI   : in    std_logic;      --! data strobe input
-            STRBO   : out   std_logic       --! data strobe output, not filtered only delayed like filter delay
+            STRBO   : out   std_logic       --! data strobe output, not filtered only delayed like filter delay, strobe is center aligned to filter chain
         );
 end entity generic_spi_master_inp_filter;
 --------------------------------------------------------------------------
@@ -148,7 +157,7 @@ begin
         --***************************
         -- Skipped
         g_skip_voter : if VOTER_STAGES <= 1 generate
-            STRBO <= synced;
+            FILTO <= synced;
         end generate g_skip_voter;
         --***************************
 
@@ -178,7 +187,7 @@ begin
 
         --***************************
         -- Skipped
-        g_skip_strobe : if c_strobe_dly = 0 generate
+        g_skip_strobe : if c_strobe_dly <= 0 generate
             STRBO <= STRBI;
         end generate g_skip_strobe;
         --***************************
