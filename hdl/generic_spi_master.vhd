@@ -173,7 +173,7 @@ architecture rtl of generic_spi_master is
         signal miso_filt        : std_logic;                            --! filtered MISO data input
         signal miso_sfr         : std_logic_vector(DW_SFR-1 downto 0);  --! MISO shift register
         signal miso_shift       : std_logic;                            --! shift on next clock rise edge
-        signal miso_shift_filt  : std_logic;                            --! shift delayed with filter delay
+        signal miso_shift_in    : std_logic;                            --! shift delayed with filter delay
         signal miso_shift_dly1  : std_logic;                            --! one clock cycle delayed mosi shift
         -- Miscellaneous
         signal csn_ff           : std_logic_vector(CSN'range);  --! CSN registered out
@@ -328,23 +328,35 @@ begin
 
         --***************************
         -- MISO input filtering
-        i_generic_spi_master_inp_filter : entity work.generic_spi_master_inp_filter
-            generic map (
-                            SYNC_STAGES  => MISO_SYNC_STG,  --! synchronizer stages;                                                                        0: not implemented
-                            VOTER_STAGES => MISO_FILT_STG,  --! number of ff stages for voter; if all '1' out is '1', if all '0' out '0', otherwise hold;   0: not implemented
-                            RST_STRBO    => '0',            --! STRBO output in reset
-                            RST_ACTIVE   => RST_ACTIVE      --! Reset active level
-                        )
-            port map    (
-                            RST   => RST,               --! asynchronous reset
-                            CLK   => CLK,               --! clock, rising edge
-                            FILTI => MISO,              --! filter input
-                            FILTO => miso_filt,         --! filter output
-                            STRBI => miso_shift_filt,   --! data strobe input
-                            STRBO => miso_shift         --! data strobe output, not filtered only delayed like filter delay, strobe is center aligned to filter chain
-                        );
+        --   sample point = sync stages + floor(filter stages/2)
+        --   for relaxed internal FSM handling some additional clock cycles
+        g_filter : if c_sck_div_2 > (MISO_SYNC_STG + MISO_FILT_STG) generate
+            i_generic_spi_master_inp_filter : entity work.generic_spi_master_inp_filter
+                generic map (
+                                SYNC_STAGES  => MISO_SYNC_STG,  --! synchronizer stages;                                                                        0: not implemented
+                                VOTER_STAGES => MISO_FILT_STG,  --! number of ff stages for voter; if all '1' out is '1', if all '0' out '0', otherwise hold;   0: not implemented
+                                RST_STRBO    => '0',            --! STRBO output in reset
+                                RST_ACTIVE   => RST_ACTIVE      --! Reset active level
+                            )
+                port map    (
+                                RST   => RST,           --! asynchronous reset
+                                CLK   => CLK,           --! clock, rising edge
+                                FILTI => MISO,          --! filter input
+                                FILTO => miso_filt,     --! filter output
+                                STRBI => miso_shift_in, --! data strobe input
+                                STRBO => miso_shift     --! data strobe output, not filtered only delayed like filter delay, strobe is center aligned to filter chain
+                            );
+        end generate g_filter;
         --***************************
 
+        --***************************
+        -- No input filtering
+        --
+        g_skip_filter : if c_sck_div_2 <= (MISO_SYNC_STG + MISO_FILT_STG) generate
+            miso_filt   <= MISO;
+            miso_shift  <= miso_shift_in;
+        end generate g_skip_filter;
+        --***************************
 
         --***************************
         -- SFR
@@ -367,7 +379,7 @@ begin
         --***************************
         -- SFR Control
         with current_state select                                   --! MOSI shift
-            miso_shift_filt <=  sck_cntr_is_init    when SCK_CAP,   --! when SCK_CAP,   --! shift
+            miso_shift_in   <=  sck_cntr_is_init    when SCK_CAP,   --! when SCK_CAP,   --! shift
                                 '0'                 when others;    --! no shift
         --***************************
 
