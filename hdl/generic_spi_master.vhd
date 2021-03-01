@@ -198,7 +198,7 @@ begin
     -- filter not implemented, but requested
     assert not ( (c_sck_div_2 <= (MISO_SYNC_STG + MISO_FILT_STG)) and ((0 /= MISO_SYNC_STG) or (0 /= MISO_FILT_STG)) )
     report                                                    character(LF) &
-        "MISO Filter "                                      & character(LF) &
+        "MISO Filter"                                       & character(LF) &
         "  SYNC        : " & integer'image(MISO_SYNC_STG)   & character(LF) &
         "  FILTER      : " & integer'image(MISO_FILT_STG)   & character(LF) &
         "  CLKDIV2     : " & integer'image(c_sck_div_2)     & character(LF) &
