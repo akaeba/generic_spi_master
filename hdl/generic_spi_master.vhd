@@ -187,22 +187,22 @@ begin
     -- Synthesis/Simulator Messages
     -- general
     assert not true
-    report                                                                        character(LF) &
-            "generic_spi_master " & generic_spi_master'path_name                & character(LF) &
-            "  SPI Mode    : " & integer'image(SPI_MODE)                        & character(LF) &
-            "  Chip select : " & integer'image(NUM_CS)                          & character(LF) &
-            "  SFR width   : " & integer'image(DW_SFR)                          & character(LF) &
-            "  FCLK        : " & integer'image(CLK_HZ) & "Hz"                   & character(LF) &
-            "  FSCK        : " & integer'image(CLK_HZ/(2*c_sck_div_2)) & "Hz"
+    report                                                                    character(LF) &
+        "generic_spi_master"                                                & character(LF) &
+        "  SPI Mode    : " & integer'image(SPI_MODE)                        & character(LF) &
+        "  Chip select : " & integer'image(NUM_CS)                          & character(LF) &
+        "  SFR width   : " & integer'image(DW_SFR)                          & character(LF) &
+        "  FCLK        : " & integer'image(CLK_HZ) & "Hz"                   & character(LF) &
+        "  FSCK        : " & integer'image(CLK_HZ/(2*c_sck_div_2)) & "Hz"
     severity note;
     -- filter not implemented, but requested
     assert not ( (c_sck_div_2 <= (MISO_SYNC_STG + MISO_FILT_STG)) and ((0 /= MISO_SYNC_STG) or (0 /= MISO_FILT_STG)) )
-    report                                                            character(LF) &
-            "MISO Input Filter " & generic_spi_master'path_name     & character(LF) &
-            "  SYNC        : " & integer'image(MISO_SYNC_STG)       & character(LF) &
-            "  FILTER      : " & integer'image(MISO_FILT_STG)       & character(LF) &
-            "  CLKDIV2     : " & integer'image(c_sck_div_2)         & character(LF) &
-            "NOT IMPLEMENTED, OVERSAMPLING FACTOR OF SCK TWO LOW; SYNC + FILTER < CLKDIV2"
+    report                                                    character(LF) &
+        "MISO Filter "                                      & character(LF) &
+        "  SYNC        : " & integer'image(MISO_SYNC_STG)   & character(LF) &
+        "  FILTER      : " & integer'image(MISO_FILT_STG)   & character(LF) &
+        "  CLKDIV2     : " & integer'image(c_sck_div_2)     & character(LF) &
+        "NOT IMPLEMENTED, OVERSAMPLING FACTOR OF SCK TWO LOW; SYNC + FILTER < CLKDIV2"
     severity warning;
     ----------------------------------------------
 
