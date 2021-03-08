@@ -56,7 +56,7 @@ _Generics are settable while compile time._
 ## Architecture
 
 <br/>
-<center><img src="./doc/readme/generic_spi_master_arch.svg" height="75%" width="75%" alt="major components of generic spi master as block level diagram" title="generic spi master simplified architecture" /></center>
+<center><img src="./doc/readme/generic_spi_master_arch.svg" height="90%" width="90%" alt="major components of generic spi master as block level diagram" title="generic spi master simplified architecture" /></center>
 <br/>
 
 
