@@ -50,7 +50,9 @@ _Generics are settable while compile time._
 |  2        |  1   |   0  |
 |  3        |  1   |   1  |
 
+<br/>
 <center><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/SPI_timing_diagram.svg/2000px-SPI_timing_diagram.svg.png" height="50%" width="50%" alt="Wikimedia timing diagram SPI modes" title="SPI modes timing diagram" /></center>
+<br/>
 
 
 ## Architecture
@@ -62,7 +64,9 @@ _Generics are settable while compile time._
 
 ## Timing
 
+<br/>
 <center><img src="./doc/readme/spi_if_timing.svg" height="125%" width="125%" alt="SPI Master timing diagram for interface handling" title="Interface timing diagram" /></center>
+<br/>
 
 
 ## Resource allocation
