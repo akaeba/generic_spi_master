@@ -12,6 +12,7 @@ An easy customizable multi chip select supporting _Serial Peripheral Interface_ 
 * arbitrary number of chip-selects (CSN)
 * F<sub>SCK,max</sub>=F<sub>CLK</sub>/2
 * F<sub>SCK</sub> settable at compile
+* MISO input filter
 
 
 ## Interface
@@ -53,6 +54,10 @@ _Generics are settable while compile time._
 
 
 ## Architecture
+
+<br/>
+<center><img src="./doc/readme/generic_spi_master_arch.svg" height="75%" width="75%" alt="major components of generic spi master as block level diagram" title="generic spi master simplified architecture" /></center>
+<br/>
 
 
 ## Timing
