@@ -26,24 +26,16 @@
 -- Important Hints:
 -- ================
 --
---  Settings (adjustable at compile time)
---  -------------------------------------
---      SPI_MODE:       SPI transmission mode                                   values = 0,1,2,3
---      NUM_CS          number of ch
---      DW_SFR
---      CLK_HZ
---      SCK_HZ
---      RST_ACTIVE
---      DO_SFR_OUT:
---      MISO_SYNC_STG:  number of sync stages; synchronizes MISO data input;    values = 0,2,3
---      MISO_FILT
---
---  Miscellaneous
---  -------------
---      DI/DO:      bit-width of the SFR multiplied by the CS channel number
---                    * the lowest bit indices belonging to the lowest index in CSN
---                    * allows an generic data/channel width w/o defining data types
---                    * slicing into SFR width signals can done with "alias" statement
+--  Key Features
+--  ------------
+--    * SPI Mode 0-3
+--    * Arbitrary number of chip-selects (CSN)
+--    * Adjustable shift register width
+--    * FSCK,max = FCLK/2
+--    * FSCK settable at compile
+--    * MISO input filter
+--    * round-robin CSN arbitration, starting at low index
+--    * no parallel buffer registers for minimal resource footprint
 --
 --  SPI Mode
 --  --------
@@ -75,14 +67,14 @@ library IEEE;
 -- Generic SPI Master
 entity generic_spi_master is
 generic (
-            SPI_MODE        : integer range 0 to 3  := 0;           --! SPI transfer Mode
+            SPI_MODE        : integer range 0 to 3  := 0;           --! used transfer mode
             NUM_CS          : positive              := 1;           --! Number of Channels (chip-selects)
-            DW_SFR          : integer               := 8;           --! data width shift register
+            DW_SFR          : integer               := 8;           --! data width serial in/out shift register
             CLK_HZ          : positive              := 50_000_000;  --! clock frequency
-            SCK_HZ          : positive              := 1_000_000;   --! Shift clock rate; minimal frequency - can be higher due numeric rounding effects
+            SCK_HZ          : positive              := 1_000_000;   --! Bit clock rate; minimal frequency - can be higher due numeric rounding effects
             RST_ACTIVE      : bit                   := '1';         --! Reset active level
             MISO_SYNC_STG   : natural range 0 to 3  := 0;           --! number of MISO sync stages, 0: not implemented
-            MISO_FILT_STG   : natural               := 0            --! number of bit length for hysteresis, 0: not implemented
+            MISO_FILT_STG   : natural               := 0            --! number of evaluated sample bits for hysteresis, 0/1: not implemented
         );
 port    (
             -- Clock/Reset
@@ -237,7 +229,6 @@ begin
             sck_tff_en  <=  ((c_cpha or (not bit_cntr_is_init)) and sck_cntr_is_init)   when SCK_CHG,   --! SPI Mode 0/2 TFF toggels not on falling edge of CSN
                             sck_cntr_is_init                                            when SCK_CAP,   --! toggle
                             '0'                                                         when others;    --! hold
-
         --***************************
 
         --***************************

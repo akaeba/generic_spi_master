@@ -5,40 +5,57 @@ An easy customizable multi chip select supporting _Serial Peripheral Interface_ 
 
 ## Releases
 
+| Version                                              | Date       | Source                                                                                                | Change log                                                                               |
+| ---------------------------------------------------- | ---------- | ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| latest                                               |            | <a id="raw-url" href="https://github.com/akaeba/generic_spi_master/archive/master.zip">latest.zip</a> |                                                                                          |
+
 
 ## Key features
 
 * SPI mode 0-3
-* arbitrary number of chip-selects (CSN)
+* Arbitrary number of chip-selects (CSN)
+* Adjustable shift register width
 * F<sub>SCK,max</sub>=F<sub>CLK</sub>/2
 * F<sub>SCK</sub> settable at compile
 * MISO input filter
+* round-robin CSN arbitration, starting at low index
+* no parallel buffer registers for minimal resource footprint
 
 
 ## Interface
 
 ### Generics
 
-| Name       | Type     | Default | Description                                      |
-| ---------- | -------- | ------- | ------------------------------------------------ |
-| SPI_MODE   | integer  | 0       | active transfer mode                             |
-| NUM_CS     | positive | 1       | available chip-selects                           |
-| DW_SFR     | integer  | 8       | SPI shift register data width                    |
-| CLK_HZ     | positive | 50M     | clock frequency                                  |
-| SCK_HZ     | positive | 1M      | bit clock frequency                              |
-| RST_ACTIVE | bit      | 1       | logic level for active reset; 1: high-active     |
-| MISO_SYNC  | natural  | 0       | MISO data input synchronization flip-flop stages |
-| MISO_FILT  | natural  | 0       | MISO input filter stages, implements hysteresis  |
+| Name          | Type     | Default    | Description                                                          |
+| ------------- | -------- | ---------- | -------------------------------------------------------------------- |
+| SPI_MODE      | integer  | 0          | used transfer mode                                                   |
+| NUM_CS        | positive | 1          | Number of Channels (chip-selects)                                    |
+| DW_SFR        | integer  | 8          | data width serial in/out shift register                              |
+| CLK_HZ        | positive | 50_000_000 | clock frequency                                                      |
+| SCK_HZ        | positive | 1_000_000  | Bit clock rate - can be higher due numeric rounding effects          |
+| RST_ACTIVE    | bit      | 1          | Reset active level                                                   |
+| MISO_SYNC_STG | natural  | 0          | number of MISO sync stages, 0: not implemented                       |
+| MISO_FILT_STG | natural  | 0          | number of evaluated sample bits for hysteresis, 0/1: not implemented |
 
-_Generics are settable while compile time._
+_Hint: settable at compile time._
 
 
 ### Ports
 
-| Port     | Direction | Width  | Description                                        |
-| -------- | --------- | ------ | -------------------------------------------------- |
-| RST      | input     | 1b     | asynchronous reset                                 |
-
+| Port  | Direction | Width  | Description                                                  |
+| ----- | --------- | ------ | ------------------------------------------------------------ |
+| RST   | in        | 1      | asynchronous reset                                           |
+| CLK   | in        | 1      | clock (rising edge)                                          |
+| CSN   | out       | NUM_CS | chip select                                                  |
+| SCK   | out       | 1      | shift forward clock                                          |
+| MOSI  | out       | 1      | serial data out (master-out-slave-in)                        |
+| MISO  | in        | 1      | serial data in  (master-in-slave-out)                        |
+| DI    | in        | DW_SFR | Parallel data-in, transmitted via MOSI                       |
+| DO    | out       | DW_SFR | Parallel data-out, received via MISO                         |
+| EN    | in        | 1      | start transfer                                               |
+| BSY   | out       | 1      | transmission active                                          |
+| DI_RD | out       | NUM_CS | load MOSI SFR with data; indexes CSN aligned                 |
+| DO_WR | out       | NUM_CS | store MISO SFR data in capture register; indexes CSN aligned |
 
 
 ## SPI Modes
