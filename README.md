@@ -1,6 +1,6 @@
 # Generic [SPI](https://en.wikipedia.org/wiki/Serial_Peripheral_Interface) Master
 
-An easy customizable multi chip select supporting _Serial Peripheral Interface_ (SPI) Master.
+_Serial Peripheral Interface_ (SPI) Master with an arbitrary number of chip-selects
 
 
 ## Releases
