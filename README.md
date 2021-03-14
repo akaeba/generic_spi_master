@@ -84,7 +84,7 @@ _Hint: settable at compile time._
 
 
 <br/>
-<center><img src="./doc/readme/miso_sampling_with_filter.svg" height="125%" width="125%" alt="Timing Diagram of MISO input filtering and data evaluation length" title="MISO data input timing and filtering" /></center>
+<center><img src="./doc/readme/miso_sampling_with_filter.svg" height="85%" width="85%" alt="Timing Diagram of MISO input filtering and data evaluation length" title="MISO data input timing and filtering" /></center>
 <br/>
 
 
