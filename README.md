@@ -82,9 +82,12 @@ _Hint: settable at compile time._
 
 ### MISO input filter
 
+The _generic_spi_master_ allows to consider the _MISO_ data input as asynchronous. This asynchronicity can be caused by ESD events at sampling time. To resolve
+the potentially issue implements the _generic_spi_master_ via generic a input synchronizer and a filter stage. The picture below shows the data sampling time
+and the evaluated sampling points with an active filter for the spi mode 0. The SFR input changes only, when all bits in the filter stage or one or zero. 
 
 <br/>
-<center><img src="./doc/readme/miso_sampling_with_filter.svg" height="85%" width="85%" alt="Timing Diagram of MISO input filtering and data evaluation length" title="MISO data input timing and filtering" /></center>
+<center><img src="./doc/readme/miso_sampling_with_filter.svg" height="65%" width="65%" alt="Timing Diagram of MISO input filtering and data evaluation length" title="MISO data input timing and filtering" /></center>
 <br/>
 
 

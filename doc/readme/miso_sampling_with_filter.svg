@@ -3,7 +3,7 @@
 <!-- Generiert durch Microsoft Visio 11.0, SVG Export, v1.0 miso_sampling_with_filter.svg Page-1 -->
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events"
 		xmlns:v="http://schemas.microsoft.com/visio/2003/SVGExtensions/" width="2.29689in" height="0.614235in"
-		viewBox="0 0 165.376 44.2249" xml:space="preserve" color-interpolation-filters="sRGB" class="st11">
+		viewBox="0 0 165.376 44.2249" xml:space="preserve" color-interpolation-filters="sRGB" class="st12">
 	<title>MISO Filter Sampling time</title>
 	<v:documentProperties v:langID="1031" v:metric="true" v:viewMarkup="false">
 		<v:userDefs>
@@ -24,7 +24,8 @@
 		.st8 {fill:#ffffff;stroke:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
 		.st9 {fill:#000000;font-family:Calibri;font-size:0.333344em;font-style:italic;font-weight:bold}
 		.st10 {fill:#000000;font-family:Calibri;font-size:0.333344em}
-		.st11 {fill:none;fill-rule:evenodd;font-size:12px;overflow:visible;stroke-linecap:square;stroke-miterlimit:3}
+		.st11 {stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.25}
+		.st12 {fill:none;fill-rule:evenodd;font-size:12px;overflow:visible;stroke-linecap:square;stroke-miterlimit:3}
 	]]>
 	</style>
 
@@ -293,7 +294,40 @@
 			<v:textRect cx="7.6378" cy="41.6423" width="15.28" height="5.16535"/>
 			<rect x="0" y="39.0596" width="15.2756" height="5.16535" class="st5"/>
 			<text x="0.4" y="42.84" class="st10" v:langID="1031"><v:paragraph v:horizAlign="2"/><v:tabList/>Sampling</text>		</g>
-		<g id="shape65-175" v:mID="65" v:groupContext="shape" v:layerMember="0" transform="translate(65.1969,-0.132418)">
+		<g id="shape66-175" v:mID="66" v:groupContext="shape" transform="translate(36.8504,-27.1811)">
+			<title>Tabelle.66</title>
+			<desc>update</desc>
+			<v:textBlock v:margins="rect(0,0,0,0)" v:tabSpace="42.5197"/>
+			<v:textRect cx="10.6722" cy="41.6423" width="21.35" height="5.16535"/>
+			<rect x="0" y="39.0596" width="21.3445" height="5.16535" class="st5"/>
+			<text x="0" y="42.84" class="st10" v:langID="1031"><v:paragraph/><v:tabList/>update</text>		</g>
+		<g id="shape67-178" v:mID="67" v:groupContext="shape" transform="translate(73.1339,-27.1811)">
+			<title>Tabelle.67</title>
+			<desc>capture</desc>
+			<v:textBlock v:margins="rect(0,0,0,0)" v:tabSpace="42.5197"/>
+			<v:textRect cx="7.37008" cy="41.6423" width="14.75" height="5.16535"/>
+			<rect x="0" y="39.0596" width="14.7402" height="5.16535" class="st5"/>
+			<text x="2.2" y="42.84" class="st10" v:langID="1031"><v:paragraph v:horizAlign="2"/><v:tabList/>capture</text>		</g>
+		<g id="shape68-181" v:mID="68" v:groupContext="shape" transform="translate(-3.50994,-4.18172) rotate(-60.9454)">
+			<title>Tabelle.68</title>
+			<path d="M0 44.22 L2.92 44.22" class="st11"/>
+		</g>
+		<g id="shape69-184" v:mID="69" v:groupContext="shape" transform="translate(54.8217,43.8135) rotate(-126.384)">
+			<title>Tabelle.69</title>
+			<path d="M0 44.22 L3.35 44.22" class="st11"/>
+		</g>
+		<g id="shape70-187" v:mID="70" v:groupContext="shape" transform="translate(150.52,-27.3071)">
+			<title>Tabelle.70</title>
+			<desc>update</desc>
+			<v:textBlock v:margins="rect(0,0,0,0)" v:tabSpace="42.5197"/>
+			<v:textRect cx="6.94488" cy="41.6423" width="13.89" height="5.16535"/>
+			<rect x="0" y="39.0596" width="13.8898" height="5.16535" class="st5"/>
+			<text x="0" y="42.84" class="st10" v:langID="1031"><v:paragraph/><v:tabList/>update</text>		</g>
+		<g id="shape71-190" v:mID="71" v:groupContext="shape" transform="translate(110.159,-4.30771) rotate(-60.9454)">
+			<title>Tabelle.71</title>
+			<path d="M0 44.22 L2.92 44.22" class="st11"/>
+		</g>
+		<g id="shape65-193" v:mID="65" v:groupContext="shape" v:layerMember="0" transform="translate(65.1969,-0.132418)">
 			<title>Umgekehrte geschweifte Klammer</title>
 			<desc>Evaluated for MISO SFR input</desc>
 			<v:userDefs>
