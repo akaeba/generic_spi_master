@@ -20,6 +20,7 @@ _Serial Peripheral Interface_ (SPI) Master with an arbitrary number of chip-sele
 * MISO input filter
 * round-robin CSN arbitration, starting at low index
 * no parallel buffer registers for minimal resource footprint
+* independent MOSI/MISO shift register path
 
 
 ## Interface
@@ -79,6 +80,14 @@ _Hint: settable at compile time._
 <br/>
 
 
+### MISO input filter
+
+
+<br/>
+<center><img src="./doc/readme/miso_sampling_with_filter.svg" height="125%" width="125%" alt="Timing Diagram of MISO input filtering and data evaluation length" title="MISO data input timing and filtering" /></center>
+<br/>
+
+
 ## Timing
 
 <br/>
@@ -88,9 +97,9 @@ _Hint: settable at compile time._
 
 ## Resource allocation
 
-| Technology        | Logic | Registers | BRAM | Fmax   |
-| ----------------- | ----- | --------- | ---- | ------ |
-| Cyclone 10 (FPGA) |       |           |      |        |
+| Technology        | HDL generics | Logic | Registers | BRAM | Fmax   |
+| ----------------- | ------------ | ----- | --------- | ---- | ------ |
+| Cyclone 10 (FPGA) |              |       |           |      |        |
 
 
 ## Example
