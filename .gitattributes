@@ -25,3 +25,11 @@
 *.ppt binary
 *.vsd binary
 *.pdf binary
+#
+
+
+# Shell scripts with LF-EOL
+#   https://docs.github.com/en/github/using-git/configuring-git-to-handle-line-endings
+#
+*.sh text eol=lf
+#
