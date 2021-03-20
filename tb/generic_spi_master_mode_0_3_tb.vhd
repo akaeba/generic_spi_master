@@ -34,7 +34,8 @@ library work;
 entity generic_spi_master_mode_0_3_tb is
 generic (
             DO_ALL_TEST : boolean               := false;   --! switch for enabling all tests
-            SPI_MODE    : integer range 0 to 3  := 0        --! used SPI transfer mode
+            SPI_MODE    : integer range 0 to 3  := 0;       --! used SPI transfer mode
+            CLK_DIV2    : integer               := 1        --! 1: sck runs with half clock
         );
 end entity generic_spi_master_mode_0_3_tb;
 --------------------------------------------------------------------------
@@ -47,13 +48,13 @@ architecture sim of generic_spi_master_mode_0_3_tb is
     -----------------------------
     -- Constant
         -- DUT
-        constant NUM_CS     : integer   := 2;
-        constant DW_SFR     : integer   := 8;
-        constant CLK_HZ     : positive  := 50_000_000;
-        constant SCK_HZ     : positive  := 10_000_000;
-        constant RST_ACTIVE : bit       := '1';
-        constant MISO_SYNC  : natural   := 0;
-        constant MISO_FILT  : natural   := 0;
+        constant NUM_CS         : integer   := 2;
+        constant DW_SFR         : integer   := 8;
+        constant CLK_HZ         : positive  := 50_000_000;
+        constant SCK_HZ         : positive  := CLK_HZ / (2*CLK_DIV2);
+        constant RST_ACTIVE     : bit       := '1';
+        constant MISO_SYNC_STG  : natural   := 0;
+        constant MISO_FILT_STG  : natural   := 0;
         -- Clock
         constant tclk   : time  := 1 sec / CLK_HZ;  --! 1MHz clock
         constant tskew  : time  := tclk / 50;       --! data skew
@@ -93,14 +94,14 @@ begin
     -- DUT
     DUT : entity work.generic_spi_master
         generic map (
-                        SPI_MODE    => SPI_MODE,
-                        NUM_CS      => NUM_CS,
-                        DW_SFR      => DW_SFR,
-                        CLK_HZ      => CLK_HZ,
-                        SCK_HZ      => SCK_HZ,
-                        RST_ACTIVE  => RST_ACTIVE,
-                        MISO_SYNC   => MISO_SYNC,
-                        MISO_FILT   => MISO_FILT
+                        SPI_MODE        => SPI_MODE,
+                        NUM_CS          => NUM_CS,
+                        DW_SFR          => DW_SFR,
+                        CLK_HZ          => CLK_HZ,
+                        SCK_HZ          => SCK_HZ,
+                        RST_ACTIVE      => RST_ACTIVE,
+                        MISO_SYNC_STG   => MISO_SYNC_STG,
+                        MISO_FILT_STG   => MISO_FILT_STG
                     )
         port map    (
                         RST   => RST,
@@ -252,8 +253,9 @@ begin
     -- MISO SFR
     --  @see: https://de.wikipedia.org/wiki/Serial_Peripheral_Interface#/media/Datei:SPI_timing_diagram2.svg
     p_miso_sfr : process ( SCK, CSN )
+        variable bit_cntr : integer range 0 to DW_SFR;
     begin
-        if ( (0 = SPI_MODE) or (2 = SPI_MODE) ) then
+        if ( (0 = SPI_MODE) or (2 = SPI_MODE) ) then    --! spi mode 0/2
             if ( falling_edge(CSN(0)) ) then
                 miso_reg <= DO_CS0;
             elsif( falling_edge(CSN(1)) ) then
@@ -263,6 +265,46 @@ begin
             elsif ( (2 = SPI_MODE) and (rising_edge(SCK)) ) then
                 miso_reg <= miso_reg(miso_reg'left-1 downto miso_reg'right) & '0';
             end if;
+        elsif ( (1 = SPI_MODE) or (3 = SPI_MODE) ) then --! spi mode 1/3
+            if ( '1' = CSN(0) and '1' = CSN(1) ) then
+                bit_cntr := DW_SFR;
+            else
+                if ( (1 = SPI_MODE) and (rising_edge(SCK)) ) then
+                    if ( DW_SFR = bit_cntr ) then   --! first edge, load
+                        if ( '0' = CSN(0) and '1' = CSN(1) ) then       --! CSN0 selected
+                            miso_reg <= DO_CS0;
+                        elsif ( '1' = CSN(0) and '0' = CSN(1) ) then    --! CSN1 selected
+                            miso_reg <= DO_CS1;
+                        end if;
+                        bit_cntr := bit_cntr - 1;
+                    else                            --! following edges, shift
+                        if ( '0' = CSN(0) and '1' = CSN(1) ) then       --! CSN0 selected
+                            miso_reg <= miso_reg(miso_reg'left-1 downto miso_reg'right) & '0';
+                        elsif ( '1' = CSN(0) and '0' = CSN(1) ) then    --! CSN1 selected
+                            miso_reg <= miso_reg(miso_reg'left-1 downto miso_reg'right) & '0';
+                        end if;
+                        bit_cntr := bit_cntr - 1;
+                    end if;
+                elsif ( (3 = SPI_MODE) and (falling_edge(SCK)) ) then
+                    if ( DW_SFR = bit_cntr ) then   --! first edge, load
+                        if ( '0' = CSN(0) and '1' = CSN(1) ) then       --! CSN0 selected
+                            miso_reg <= DO_CS0;
+                        elsif ( '1' = CSN(0) and '0' = CSN(1) ) then    --! CSN1 selected
+                            miso_reg <= DO_CS1;
+                        end if;
+                        bit_cntr := bit_cntr - 1;
+                    else                            --! following edges, shift
+                        if ( '0' = CSN(0) and '1' = CSN(1) ) then       --! CSN0 selected
+                            miso_reg <= miso_reg(miso_reg'left-1 downto miso_reg'right) & '0';
+                        elsif ( '1' = CSN(0) and '0' = CSN(1) ) then    --! CSN1 selected
+                            miso_reg <= miso_reg(miso_reg'left-1 downto miso_reg'right) & '0';
+                        end if;
+                        bit_cntr := bit_cntr - 1;
+                    end if;
+                end if;
+            end if;
+        else
+            Report "Unsupported SPI Mode: " & integer'image(SPI_MODE) severity failure;
         end if;
     end process p_miso_sfr;
     -- output
@@ -284,6 +326,16 @@ begin
                     mosi_reg <= mosi_reg(mosi_reg'left-1 downto mosi_reg'right) & MOSI after tskew;
                 end if;
             end if;
+        elsif ( (1 = SPI_MODE) or (3 = SPI_MODE) ) then
+            if ( '0' = CSN(0) or '0' = CSN(1) ) then
+                if ( (1 = SPI_MODE) and (falling_edge(SCK)) ) then
+                    mosi_reg <= mosi_reg(mosi_reg'left-1 downto mosi_reg'right) & MOSI after tskew;
+                elsif ( (3 = SPI_MODE) and (rising_edge(SCK)) ) then
+                    mosi_reg <= mosi_reg(mosi_reg'left-1 downto mosi_reg'right) & MOSI after tskew;
+                end if;
+            end if;
+        else
+            Report "Unsupported SPI Mode: " & integer'image(SPI_MODE) severity failure;
         end if;
     end process p_mosi_sfr;
     ----------------------------------------------
