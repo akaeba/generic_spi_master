@@ -18,12 +18,12 @@
 
 
 # set up sim
-set TCLK_NS	20;									# clock period in nano seconds
-set CLKDIV2 1;									# CLK Divider
-set LOOPS	20;									# loop iteration in TB
-set TSCK_NS [expr {${TCLK_NS}*2*${CLKDIV2}}];	# calc bit shift clock
-set TFRM_NS [expr 2*9*${TSCK_NS}+1];			# CSN=2; DW_SFR=8;
-set TSIM_NS [expr ${TFRM_NS}*${LOOPS} + 1000];	# total sim time
+set TCLK_NS 20;                                 # clock period in nano seconds
+set CLKDIV2 1;                                  # CLK Divider
+set LOOPS   20;                                 # loop iteration in TB
+set TSCK_NS [expr {${TCLK_NS}*2*${CLKDIV2}}];   # calc bit shift clock
+set TFRM_NS [expr 2*9*${TSCK_NS}+1];            # CSN=2; DW_SFR=8;
+set TSIM_NS [expr ${TFRM_NS}*${LOOPS} + 1000];  # total sim time
 
 
 # start simulation, disable optimization
