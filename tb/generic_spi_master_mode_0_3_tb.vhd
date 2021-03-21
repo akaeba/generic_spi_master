@@ -34,8 +34,10 @@ library work;
 entity generic_spi_master_mode_0_3_tb is
 generic (
             DO_ALL_TEST : boolean               := false;   --! switch for enabling all tests
-            SPI_MODE    : integer range 0 to 3  := 0;       --! used SPI transfer mode
-            CLK_DIV2    : integer               := 1        --! 1: sck runs with half clock
+            TCLK_NS     : integer               := 20;      --! basic clock period in NS
+            CLK_DIV2    : integer               := 1;       --! 1: sck runs with half clock
+            SPI_MODE    : integer range 0 to 3  := 0        --! used SPI transfer mode
+
         );
 end entity generic_spi_master_mode_0_3_tb;
 --------------------------------------------------------------------------
@@ -50,7 +52,7 @@ architecture sim of generic_spi_master_mode_0_3_tb is
         -- DUT
         constant NUM_CS         : integer   := 2;
         constant DW_SFR         : integer   := 8;
-        constant CLK_HZ         : positive  := 50_000_000;
+        constant CLK_HZ         : positive  := integer(round(1.0/(real(TCLK_NS)*10.0**(-9.0))));
         constant SCK_HZ         : positive  := CLK_HZ / (2*CLK_DIV2);
         constant RST_ACTIVE     : bit       := '1';
         constant MISO_SYNC_STG  : natural   := 0;
