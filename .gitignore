@@ -28,6 +28,8 @@
 # Exclude all subdirectories, f.e. compiled hdl code
 #
 sim/**/*
+!sim/doSim.sh
+log/**/*
 #
 
 
