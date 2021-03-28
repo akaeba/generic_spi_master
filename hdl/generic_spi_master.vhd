@@ -506,10 +506,9 @@ begin
                 cs_cntr_zero    <=  '1' when IDLE,      --! clear
                                     '0' when others;    --! hold
 
-            with current_state select                                                                   --! enable
-                cs_cntr_en  <=  (not c_cpha) and sck_cntr_is_zero and bit_cntr_is_zero  when SCK_CAP,   --! next channel, spi mode 0/2
-                                c_cpha and sck_cntr_is_zero                             when CSN_FRC,   --! next channel, spi mode 1/3
-                                '0'                                                     when others;    --! hold
+            with current_state select                               --! enable
+                cs_cntr_en  <=  sck_cntr_is_zero    when CSN_FRC,   --! ready to release
+                                '0'                 when others;    --! hold
 
         end generate g_csn_cntr;
         --***************************
