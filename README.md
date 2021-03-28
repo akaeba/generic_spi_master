@@ -38,7 +38,7 @@ _Serial Peripheral Interface_ (SPI) Master with an arbitrary number of chip-sele
 | MISO_SYNC_STG | natural  | 0          | number of MISO sync stages, 0: not implemented                       |
 | MISO_FILT_STG | natural  | 0          | number of evaluated sample bits for hysteresis, 0/1: not implemented |
 
-_Hint: settable at compile time._
+_Settable at compile time._
 
 
 ### Ports
@@ -100,9 +100,9 @@ and the evaluated sampling points with an active filter for the spi mode 0. The 
 
 ## Resource allocation
 
-| Technology        | HDL generics | Logic | Registers | BRAM | Fmax   |
-| ----------------- | ------------ | ----- | --------- | ---- | ------ |
-| Cyclone 10 (FPGA) |              |       |           |      |        |
+| Technology | HDL generics    | Logic | Registers | BRAM | F<sub>max</sub> |
+| ---------- | --------------- | ----- | --------- | ---- | --------------- |
+| Cyclone 10 | entity defaults | 48LEs | 34FF      | 0    | 93.64MHz        |
 
 
 ## Example
