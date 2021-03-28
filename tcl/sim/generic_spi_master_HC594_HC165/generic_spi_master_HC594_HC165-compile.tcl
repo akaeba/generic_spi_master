@@ -7,7 +7,7 @@
 ## @maintainer:     Andreas Kaeberlein
 ## @email:          andreas.kaeberlein@web.de
 ##
-## @file:           generic_spi_master_HC594_HC165_compile.tcl
+## @file:           generic_spi_master_HC594_HC165-compile.tcl
 ## @date:           2021-02-02
 ##
 ## @brief:          compile script

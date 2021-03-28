@@ -21,7 +21,7 @@
 vsim -novopt -gDO_ALL_TEST=true -t 1ps work.generic_spi_master_HC594_HC165_tb
 
 # load Waveform
-do "../tcl/sim/generic_spi_master_HC594_HC165/generic_spi_master_HC594_HC165_waveform.do"
+do "../tcl/sim/generic_spi_master_HC594_HC165/generic_spi_master_HC594_HC165-waveform.do"
 
 # sim until finish
 run 9 us
