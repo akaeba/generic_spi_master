@@ -244,7 +244,7 @@ begin
         -------------------------
             Report "End TB...";     -- sim finished
             if (good) then
-                Report "Test SUCCESSFULL";
+                Report "Test SUCCESSFUL";
             else
                 Report "Test FAILED" severity error;
             end if;
