@@ -7,32 +7,18 @@
 ## @maintainer:     Andreas Kaeberlein
 ## @email:          andreas.kaeberlein@web.de
 ##
-## @file:           generic_spi_master_compile.tcl
+## @file:           generic_spi_master-runsim.tcl
 ## @date:           2021-01-27
 ##
-## @brief:          compile script
+## @brief:          starts simulation
 ##
 ##					Modelsim: Tools -> TCL -> Execute Macro
 ##************************************************************************
 
 
 
-# path setting
-#
-set proj_dir "../"
-#
+# start simulation, disable optimization
+vsim -novopt -gDO_ALL_TEST=true -t 1ps work.generic_spi_master_tb
 
-
-
-# Compile Design
-#
-vcom -93 ${proj_dir}/hdl/generic_spi_master.vhd
-vcom -93 ${proj_dir}/hdl/generic_spi_master_inp_filter.vhd
-#
-
-
-
-# Compile TB
-#
-vcom -93 ${proj_dir}/tb/generic_spi_master_tb.vhd;	# general testbench
-#
+# load Waveform
+do "../tcl/sim/generic_spi_master/generic_spi_master-waveform.do"

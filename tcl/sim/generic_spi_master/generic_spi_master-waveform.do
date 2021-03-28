@@ -2,7 +2,6 @@ onerror {resume}
 quietly WaveActivateNextPane {} 0
 add wave -noupdate /generic_spi_master_tb/DUT/c_cpha
 add wave -noupdate /generic_spi_master_tb/DUT/c_cpol
-add wave -noupdate /generic_spi_master_tb/p_stimuli_process/good
 add wave -noupdate /generic_spi_master_tb/RST
 add wave -noupdate /generic_spi_master_tb/CLK
 add wave -noupdate -divider SPI
