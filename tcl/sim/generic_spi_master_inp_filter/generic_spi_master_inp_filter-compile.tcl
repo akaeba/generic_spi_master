@@ -7,12 +7,12 @@
 ## @maintainer:     Andreas Kaeberlein
 ## @email:          andreas.kaeberlein@web.de
 ##
-## @file:           generic_spi_master_inp_filter_compile.tcl
+## @file:           generic_spi_master_inp_filter-compile.tcl
 ## @date:           2021-02-26
 ##
 ## @brief:          compile script
 ##
-##					Modelsim: Tools -> TCL -> Execute Macro
+##                  Modelsim: Tools -> TCL -> Execute Macro
 ##************************************************************************
 
 
