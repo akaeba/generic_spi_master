@@ -94,7 +94,7 @@ begin
 
         --***************************
         -- Implemented
-        g_sync : if SYNC_STAGES > 0 generate
+        g_sync : if SYNC_STAGES > 1 generate
             -- flip flop
             p_sync_ff : process( RST, CLK )
             begin
@@ -111,7 +111,7 @@ begin
 
         --***************************
         -- Skipped
-        g_skip_sync : if SYNC_STAGES = 0 generate
+        g_skip_sync : if SYNC_STAGES <= 1 generate
             synced <= FILTI;
         end generate g_skip_sync;
         --***************************
