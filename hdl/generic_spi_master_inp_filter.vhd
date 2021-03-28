@@ -37,6 +37,7 @@ library ieee;
     use ieee.std_logic_misc.and_reduce;
     use ieee.std_logic_misc.nor_reduce;
     use ieee.math_real.floor;
+    use ieee.math_real.realmax;
 --------------------------------------------------------------------------
 
 
@@ -78,12 +79,12 @@ architecture rtl of generic_spi_master_inp_filter is
     ----------------------------------------------
     -- Signals
     ----------------------------------------------
-        signal rsff_set     : std_logic;                                    --! sets RSFF
-        signal rsff_reset   : std_logic;                                    --! reset RSFF
-        signal sync_ffs     : std_logic_vector(SYNC_STAGES-1 downto 0);     --! synchronization flip flops
-        signal synced       : std_logic;                                    --! synchronizer stage output
-        signal voter_ffs    : std_logic_vector(VOTER_STAGES-1 downto 0);    --! SFR for voter input
-        signal strobe_ffs   : std_logic_vector(c_strobe_dly-1 downto 0);    --! SFR for strobe
+        signal rsff_set     : std_logic;                                                                --! sets RSFF
+        signal rsff_reset   : std_logic;                                                                --! reset RSFF
+        signal sync_ffs     : std_logic_vector(integer(realmax(real(SYNC_STAGES-1), 0.0)) downto 0);    --! synchronization flip flops
+        signal synced       : std_logic;                                                                --! synchronizer stage output
+        signal voter_ffs    : std_logic_vector(integer(realmax(real(VOTER_STAGES-1), 0.0)) downto 0);   --! SFR for voter input
+        signal strobe_ffs   : std_logic_vector(integer(realmax(real(c_strobe_dly-1), 0.0)) downto 0);   --! SFR for strobe
     ----------------------------------------------
 
 begin
