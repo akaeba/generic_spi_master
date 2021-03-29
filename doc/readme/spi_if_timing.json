@@ -28,7 +28,7 @@ edge: [
    'a|-b TSCK/2', 'b~-c TSCK/2', 'c~-d TSCK/2', 'e-|f TSCK/2', 'f-|g TSCK/2', 'h-|i TSCK/2',
 ],
 head:{
- text:'SPI_MODE=0; NUM_CS=2; DW_SFR=4; MISO_SYNC=0; MISO_FILT=0;',
+ text:'SPI_MODE=0; NUM_CS=2; DW_SFR=4; SCK_HZ=CLK_HZ/2; MISO_SYNC_STG=0; MISO_FILT_STG=0;',
  tock: 1
 },
 foot:{
