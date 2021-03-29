@@ -507,7 +507,7 @@ begin
                                     '0' when others;    --! hold
 
             with current_state select                               --! enable
-                cs_cntr_en  <=  sck_cntr_is_zero    when CSN_FRC,   --! ready to release
+                cs_cntr_en  <=  sck_cntr_is_init    when CSN_FRC,   --! ready to release
                                 '0'                 when others;    --! hold
 
         end generate g_csn_cntr;
