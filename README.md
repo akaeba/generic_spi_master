@@ -5,9 +5,10 @@ _Serial Peripheral Interface_ (SPI) Master with an arbitrary number of chip-sele
 
 ## Releases
 
-| Version                                              | Date       | Source                                                                                                | Change log                                                                               |
-| ---------------------------------------------------- | ---------- | ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| latest                                               |            | <a id="raw-url" href="https://github.com/akaeba/generic_spi_master/archive/master.zip">latest.zip</a> |                                                                                          |
+| Version                                                            | Date       | Source                                                                                                | Change log                                                                               |
+| ------------------------------------------------------------------ | ---------- | ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| latest                                                             |            | <a id="raw-url" href="https://github.com/akaeba/generic_spi_master/archive/master.zip">latest.zip</a> |                                                                                          |
+| [v0.1.0](https://github.com/akaeba/generic_spi_master/tree/v0.1.0) | 2021-03-29 | <a id="raw-url" href="https://github.com/akaeba/generic_spi_master/archive/v0.1.0.zip">v0.1.0.zip</a> | initial draft                                                                            |
 
 
 ## Key features
@@ -84,7 +85,7 @@ _Settable at compile time._
 
 The _generic_spi_master_ allows to consider the _MISO_ data input as asynchronous. This asynchronicity can be caused by ESD events at sampling time. To resolve
 the potentially issue implements the _generic_spi_master_ via generic a input synchronizer and a filter stage. The picture below shows the data sampling time
-and the evaluated sampling points with an active filter for the spi mode 0. The SFR input changes only, when all bits in the filter stage or one or zero. 
+and the evaluated sampling points with an active filter for the spi mode 0. The SFR input changes only, when all bits in the filter stage or one or zero.
 
 <br/>
 <center><img src="./doc/readme/miso_sampling_with_filter.svg" height="65%" width="65%" alt="Timing Diagram of MISO input filtering and data evaluation length" title="MISO data input timing and filtering" /></center>
