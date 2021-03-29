@@ -51,8 +51,8 @@ architecture sim of generic_spi_master_tb is
         constant CLK_HZ         : positive              := 50_000_000;
         constant SCK_HZ         : positive              := 1_000_000;
         constant RST_ACTIVE     : bit                   := '1';
-        constant MISO_SYNC_STG  : natural               := 2;
-        constant MISO_FILT_STG  : natural               := 5;
+        constant MISO_SYNC_STG  : natural               := 0;
+        constant MISO_FILT_STG  : natural               := 0;
 
         -- Clock
         constant tclk   : time  := 1 sec / CLK_HZ;  --! 50MHz clock
