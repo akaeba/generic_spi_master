@@ -26,6 +26,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      GHDL_OPTS: "--std=93c --ieee=synopsys --time-resolution=ps --workdir=./sim/work"
     steps:
       - uses: actions/checkout@v1
       - uses: ghdl/setup-ghdl-ci@nightly
@@ -37,7 +39,7 @@ jobs:
           mkdir -p ./sim/work
       - name: generic_spi_master_inp_filter
         run: |
-          ghdl -a --std=93c --ieee=synopsys --time-resolution=ps --workdir=./sim/work ./hdl/generic_spi_master_inp_filter.vhd
-          ghdl -a --std=93c --ieee=synopsys --time-resolution=ps --workdir=./sim/work ./tb/generic_spi_master_inp_filter_tb.vhd
-          ((ghdl -r --std=93c --ieee=synopsys --time-resolution=ps --workdir=./sim/work generic_spi_master_inp_filter_tb -gDO_ALL_TEST=True) || if [ $? -ne 0 ]; then echo "[ FAIL ]   eSpiStaticSlave"; exit 1; fi)
+          ghdl -a ${GHDL_OPTS} ./hdl/generic_spi_master_inp_filter.vhd
+          ghdl -a ${GHDL_OPTS} ./tb/generic_spi_master_inp_filter_tb.vhd
+          ((ghdl -r ${GHDL_OPTS} generic_spi_master_inp_filter_tb -gDO_ALL_TEST=True) || if [ $? -ne 0 ]; then echo "[ FAIL ]   generic_spi_master_inp_filter"; exit 1; fi)
 
