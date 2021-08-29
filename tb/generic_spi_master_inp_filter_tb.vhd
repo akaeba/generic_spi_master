@@ -217,7 +217,7 @@ begin
         -- Test3: Switch to one and check sampling signal
         -------------------------
         if ( DO_ALL_TEST or do_test_3 ) then
-            Report "Switch to one and check sampling signal";
+            Report "Test3: Switch to one and check sampling signal";
             wait until rising_edge(CLK); wait for tskew;
             FILTI   <= '1';
             wait until rising_edge(CLK); wait for tskew;
@@ -246,7 +246,7 @@ begin
             if (good) then
                 Report "Test SUCCESSFUL";
             else
-                Report "Test FAILED" severity error;
+                Report "Test FAILED" severity failure;
             end if;
             wait;                   -- stop process continuous run
         -------------------------
