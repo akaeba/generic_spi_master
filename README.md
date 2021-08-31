@@ -1,3 +1,5 @@
+[![Unittest](https://github.com/akaeba/generic_spi_master/workflows/Unittest/badge.svg)](https://github.com/akaeba/generic_spi_master/actions)
+
 # Generic [SPI](https://en.wikipedia.org/wiki/Serial_Peripheral_Interface) Master
 
 _Serial Peripheral Interface_ (SPI) Master with an arbitrary number of chip-selects
