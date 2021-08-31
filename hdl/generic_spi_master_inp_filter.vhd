@@ -72,7 +72,7 @@ architecture rtl of generic_spi_master_inp_filter is
     ----------------------------------------------
     -- Constants
     ----------------------------------------------
-        constant c_strobe_dly : integer := SYNC_STAGES + integer(floor(real(VOTER_STAGES))/2.0);
+        constant c_strobe_dly : integer := SYNC_STAGES + integer(floor(real(VOTER_STAGES)/2.0));
     ----------------------------------------------
 
 

@@ -228,7 +228,6 @@ begin
             wait until rising_edge(CLK); wait for tskew;
             wait until rising_edge(CLK); wait for tskew;
             wait until rising_edge(CLK); wait for tskew;
-            wait until rising_edge(CLK); wait for tskew;
             assert ( '1' = STRBO ) report "  strobe failed, need 1" severity warning;
             if not ( '1' = STRBO  ) then good := false; end if;
             wait until rising_edge(CLK); wait for tskew;
