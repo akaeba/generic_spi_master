@@ -70,6 +70,8 @@ architecture sim of generic_spi_master_inp_filter_tb is
         signal FILTO    : std_logic;
         signal STRBI    : std_logic;
         signal STRBO    : std_logic;
+        -- TB
+        signal CLKENA   : std_logic := '1';     --! clock gating
     -----------------------------
 
 begin
@@ -247,6 +249,8 @@ begin
             else
                 Report "Test FAILED" severity failure;
             end if;
+            wait until falling_edge(CLK); wait for tskew;
+            CLKENA <= '0';
             wait;                   -- stop process continuous run
         -------------------------
 
@@ -259,11 +263,12 @@ begin
     p_clk : process
         variable v_clk : std_logic := '0';
     begin
-        while true loop
+        while ( '1' = CLKENA ) loop
             CLK     <= v_clk;
             v_clk   := not v_clk;
             wait for tclk/2;
-            end loop;
+        end loop;
+        wait;
     end process p_clk;
     ----------------------------------------------
 
