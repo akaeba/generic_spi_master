@@ -81,13 +81,14 @@ architecture sim of generic_spi_master_mode_0_3_tb is
         signal BSY      : std_logic;
         signal DO_WR    : std_logic_vector(NUM_CS-1 downto 0);
         signal DI_RD    : std_logic_vector(NUM_CS-1 downto 0);
-        -- Test
+        -- TB
         signal DI_CS0   : std_logic_vector(DI'range);
         signal DI_CS1   : std_logic_vector(DI'range);
         signal DO_CS0   : std_logic_vector(DI'range);
         signal DO_CS1   : std_logic_vector(DI'range);
         signal miso_reg : std_logic_vector(DI'range);
         signal mosi_reg : std_logic_vector(DI'range);
+        signal CLKENA   : std_logic := '1';             --! clock gating
     -----------------------------
 
 begin
@@ -230,13 +231,15 @@ begin
         -------------------------
         -- Report TB
         -------------------------
-            Report "End TB...";     -- sim finished
+            Report "End TB...";     --! sim finished
             if (good) then
                 Report "Test SUCCESSFUL";
             else
                 Report "Test FAILED" severity error;
             end if;
-            wait;                   -- stop process continuous run
+            wait until falling_edge(CLK); wait for tskew;
+            CLKENA <= '0';          --! allows GHDL to stop sim
+            wait;                   --! stop process continuous run
         -------------------------
 
     end process p_stimuli_process;
@@ -348,11 +351,12 @@ begin
     p_clk : process
         variable v_clk : std_logic := '0';
     begin
-        while true loop
+        while ( '1' = CLKENA ) loop
             CLK     <= v_clk;
             v_clk   := not v_clk;
             wait for tclk/2;
-            end loop;
+        end loop;
+        wait;
     end process p_clk;
     ----------------------------------------------
 
