@@ -235,7 +235,7 @@ begin
             if (good) then
                 Report "Test SUCCESSFUL";
             else
-                Report "Test FAILED" severity error;
+                Report "Test FAILED" severity failure;
             end if;
             wait until falling_edge(CLK); wait for tskew;
             CLKENA <= '0';          --! allows GHDL to stop sim
