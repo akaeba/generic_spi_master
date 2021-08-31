@@ -10,6 +10,7 @@ _Serial Peripheral Interface_ (SPI) Master with an arbitrary number of chip-sele
 | Version                                                            | Date       | Source                                                                                                | Change log                                                                               |
 | ------------------------------------------------------------------ | ---------- | ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
 | latest                                                             |            | <a id="raw-url" href="https://github.com/akaeba/generic_spi_master/archive/master.zip">latest.zip</a> |                                                                                          |
+| [v0.2.0](https://github.com/akaeba/generic_spi_master/tree/v0.2.0) | 2021-08-31 | <a id="raw-url" href="https://github.com/akaeba/generic_spi_master/archive/v0.2.0.zip">v0.2.0.zip</a> | bugfix strobe sync length, introduce CI                                                  |
 | [v0.1.0](https://github.com/akaeba/generic_spi_master/tree/v0.1.0) | 2021-03-29 | <a id="raw-url" href="https://github.com/akaeba/generic_spi_master/archive/v0.1.0.zip">v0.1.0.zip</a> | initial draft                                                                            |
 
 
