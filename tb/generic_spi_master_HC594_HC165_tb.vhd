@@ -77,12 +77,13 @@ architecture sim of generic_spi_master_HC594_HC165_tb is
         signal BSY      : std_logic;
         signal DO_WR    : std_logic_vector(NUM_CS-1 downto 0);
         signal DI_RD    : std_logic_vector(NUM_CS-1 downto 0);
-        -- Misc
+        -- TB
         signal XRST     : std_logic;
         signal XSCK     : std_logic;
         signal XCSN     : std_logic;                    --! complementary low active chip-select (high-active)
         signal par_out  : std_logic_vector(7 downto 0); --! parallel SFR out (HC594)
         signal par_in   : std_logic_vector(7 downto 0); --! parallel SFR in (HC165)
+        signal CLKENA   : std_logic := '1';             --! clock gating
     -----------------------------
 
 begin
@@ -247,13 +248,15 @@ begin
         -------------------------
         -- Report TB
         -------------------------
-            Report "End TB...";     -- sim finished
+            Report "End TB...";     --! sim finished
             if (good) then
                 Report "Test SUCCESSFUL";
             else
-                Report "Test FAILED" severity error;
+                Report "Test FAILED" severity failure;
             end if;
-            wait;                   -- stop process continuous run
+            wait until falling_edge(CLK); wait for tskew;
+            CLKENA <= '0';          --! allows GHDL to stop sim
+            wait;                   --! stop process continuous run
         -------------------------
 
     end process p_stimuli_process;
@@ -265,11 +268,12 @@ begin
     p_clk : process
         variable v_clk : std_logic := '0';
     begin
-        while true loop
+        while ( '1' = CLKENA ) loop
             CLK     <= v_clk;
             v_clk   := not v_clk;
             wait for tclk/2;
-            end loop;
+        end loop;
+        wait;
     end process p_clk;
     ----------------------------------------------
 

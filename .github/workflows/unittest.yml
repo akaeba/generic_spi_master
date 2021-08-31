@@ -59,4 +59,11 @@ jobs:
           ((ghdl -r ${GHDL_OPTS} generic_spi_master_mode_0_3_tb -gDO_ALL_TEST=True -gCLK_DIV2=1 -gSPI_MODE=3) || if [ $? -ne 0 ]; then echo "[ FAIL ]   generic_spi_master_mode_0_3_tb"; exit 1; fi)
           ((ghdl -r ${GHDL_OPTS} generic_spi_master_mode_0_3_tb -gDO_ALL_TEST=True -gCLK_DIV2=2 -gSPI_MODE=3) || if [ $? -ne 0 ]; then echo "[ FAIL ]   generic_spi_master_mode_0_3_tb"; exit 1; fi)
           ((ghdl -r ${GHDL_OPTS} generic_spi_master_mode_0_3_tb -gDO_ALL_TEST=True -gCLK_DIV2=3 -gSPI_MODE=3) || if [ $? -ne 0 ]; then echo "[ FAIL ]   generic_spi_master_mode_0_3_tb"; exit 1; fi)
-          
+      - name: generic_spi_master_HC594_HC165_tb
+        run: |
+          ghdl -a ${GHDL_OPTS} ./hdl/generic_spi_master_inp_filter.vhd
+          ghdl -a ${GHDL_OPTS} ./hdl/generic_spi_master.vhd
+          ghdl -a ${GHDL_OPTS} ./tb/HC165.vhd
+          ghdl -a ${GHDL_OPTS} ./tb/HC594.vhd
+          ghdl -a ${GHDL_OPTS} ./tb/generic_spi_master_HC594_HC165_tb.vhd
+          ((ghdl -r ${GHDL_OPTS} generic_spi_master_HC594_HC165_tb -gDO_ALL_TEST=True) || if [ $? -ne 0 ]; then echo "[ FAIL ]   generic_spi_master_HC594_HC165_tb"; exit 1; fi)
