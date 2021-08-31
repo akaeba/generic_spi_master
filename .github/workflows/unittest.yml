@@ -41,5 +41,5 @@ jobs:
         run: |
           ghdl -a ${GHDL_OPTS} ./hdl/generic_spi_master_inp_filter.vhd
           ghdl -a ${GHDL_OPTS} ./tb/generic_spi_master_inp_filter_tb.vhd
-          ((ghdl -r ${GHDL_OPTS} generic_spi_master_inp_filter_tb -gDO_ALL_TEST=True) || if [ $? -ne 0 ]; then echo "[ FAIL ]   generic_spi_master_inp_filter"; exit 1; fi)
+          ((ghdl -r ${GHDL_OPTS} generic_spi_master_inp_filter_tb -gDO_ALL_TEST=True --stop-time=1ms) || if [ $? -ne 0 ]; then echo "[ FAIL ]   generic_spi_master_inp_filter"; exit 1; fi)
 
